@@ -1,0 +1,15 @@
+namespace: kww-system
+namePrefix: kww-
+
+patches:
+- path: manager_webhook_patch.yaml
+- path: manager_metrics_patch.yaml
+  target:
+    kind: Deployment
+
+resources:
+- ../manager
+- ../rbac
+- ../webhook
+- metrics_service.yaml
+- snatch_secret.yaml

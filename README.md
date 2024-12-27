@@ -1,55 +1,114 @@
-> **NOTE:** This is a general template that you can use for a project README.md. Except for the mandatory sections, use only those sections that suit your use case but keep the proposed section order.
->
-> Mandatory sections: 
-> - `Overview`
-> - `Prerequisites`, if there are any requirements regarding hard- or software
-> - `Installation`
-> - `Contributing` - do not change this!
-> - `Code of Conduct` - do not change this!
-> - `Licensing` - do not change this!
+# kyma-workloads-webhook
+// TODO(user): Add simple overview of use/purpose
 
-# {Project Title}
-<!--- mandatory --->
-> Modify the title and insert the name of your project. Use Heading 1 (H1).
+## Description
+// TODO(user): An in-depth paragraph about your project and overview of use
 
-## Overview
-<!--- mandatory section --->
+## Getting Started
 
-> Provide a description of the project's functionality.
->
-> If it is an example README.md, describe what the example illustrates.
+### Prerequisites
+- go version v1.22.0+
+- docker version 17.03+.
+- kubectl version v1.11.3+.
+- Access to a Kubernetes v1.11.3+ cluster.
 
-## Prerequisites
+### To Deploy on the cluster
+**Build and push your image to the location specified by `IMG`:**
 
-> List the requirements to run the project or example.
+```sh
+make docker-build docker-push IMG=<some-registry>/kyma-workloads-webhook:tag
+```
 
-## Installation
+**NOTE:** This image ought to be published in the personal registry you specified.
+And it is required to have access to pull the image from the working environment.
+Make sure you have the proper permission to the registry if the above commands don’t work.
 
-> Explain the steps to install your project. If there are multiple installation options, mention the recommended one and include others in a separate document. Create an ordered list for each installation task.
->
-> If it is an example README.md, describe how to build, run locally, and deploy the example. Format the example as code blocks and specify the language, highlighting where possible. Explain how you can validate that the example ran successfully. For example, define the expected output or commands to run which check a successful deployment.
->
-> Add subsections (H3) for better readability.
+**Install the CRDs into the cluster:**
 
-## Usage
+```sh
+make install
+```
 
-> Explain how to use the project. You can create multiple subsections (H3). Include the instructions or provide links to the related documentation.
+**Deploy the Manager to the cluster with the image specified by `IMG`:**
 
-## Development
+```sh
+make deploy IMG=<some-registry>/kyma-workloads-webhook:tag
+```
 
-> Add instructions on how to develop the project or example. It must be clear what to do and, for example, how to trigger the tests so that other contributors know how to make their pull requests acceptable. Include the instructions or provide links to related documentation.
+> **NOTE**: If you encounter RBAC errors, you may need to grant yourself cluster-admin
+privileges or be logged in as admin.
+
+**Create instances of your solution**
+You can apply the samples (examples) from the config/sample:
+
+```sh
+kubectl apply -k config/samples/
+```
+
+>**NOTE**: Ensure that the samples has default values to test it out.
+
+### To Uninstall
+**Delete the instances (CRs) from the cluster:**
+
+```sh
+kubectl delete -k config/samples/
+```
+
+**Delete the APIs(CRDs) from the cluster:**
+
+```sh
+make uninstall
+```
+
+**UnDeploy the controller from the cluster:**
+
+```sh
+make undeploy
+```
+
+## Project Distribution
+
+Following are the steps to build the installer and distribute this project to users.
+
+1. Build the installer for the image built and published in the registry:
+
+```sh
+make build-installer IMG=<some-registry>/kyma-workloads-webhook:tag
+```
+
+NOTE: The makefile target mentioned above generates an 'install.yaml'
+file in the dist directory. This file contains all the resources built
+with Kustomize, which are necessary to install this project without
+its dependencies.
+
+2. Using the installer
+
+Users can just run kubectl apply -f <URL for YAML BUNDLE> to install the project, i.e.:
+
+```sh
+kubectl apply -f https://raw.githubusercontent.com/<org>/kyma-workloads-webhook/<tag or branch>/dist/install.yaml
+```
 
 ## Contributing
-<!--- mandatory section - do not change this! --->
+// TODO(user): Add detailed information on how you would like others to contribute to this project
 
-See the [Contributing Rules](CONTRIBUTING.md).
+**NOTE:** Run `make help` for more information on all potential `make` targets
 
-## Code of Conduct
-<!--- mandatory section - do not change this! --->
+More information can be found via the [Kubebuilder Documentation](https://book.kubebuilder.io/introduction.html)
 
-See the [Code of Conduct](CODE_OF_CONDUCT.md) document.
+## License
 
-## Licensing
-<!--- mandatory section - do not change this! --->
+Copyright 2024.
 
-See the [license](./LICENSE) file.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+

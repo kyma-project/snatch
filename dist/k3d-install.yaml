@@ -1,0 +1,292 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: kyma-workloads-webhook
+    control-plane: controller-manager
+  name: kww-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: kyma-workloads-webhook
+  name: kww-controller-manager
+  namespace: kww-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: kyma-workloads-webhook
+  name: kww-leader-election-role
+  namespace: kww-system
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kww-manager-role
+rules:
+- apiGroups:
+  - admissionregistration.k8s.io
+  resources:
+  - mutatingwebhookconfigurations
+  verbs:
+  - get
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kww-metrics-auth-role
+rules:
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kww-metrics-reader
+rules:
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: kyma-workloads-webhook
+  name: kww-leader-election-rolebinding
+  namespace: kww-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kww-leader-election-role
+subjects:
+- kind: ServiceAccount
+  name: kww-controller-manager
+  namespace: kww-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: kyma-workloads-webhook
+  name: kww-manager-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kww-manager-role
+subjects:
+- kind: ServiceAccount
+  name: kww-controller-manager
+  namespace: kww-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kww-metrics-auth-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kww-metrics-auth-role
+subjects:
+- kind: ServiceAccount
+  name: kww-controller-manager
+  namespace: kww-system
+---
+apiVersion: v1
+data:
+  ca.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUVWVENDQXIyZ0F3SUJBZ0lCQVRBTkJna3Foa2lHOXcwQkFRc0ZBREFwTVNjd0pRWURWUVFERXg1cmQzY3QKZDJWaWFHOXZheTF6WlhKMmFXTmxMbXQzZHkxemVYTjBaVzB3SGhjTk1qUXhNakUzTWpBek56TTNXaGNOTWpVdwpNekUzTWpBek56TTNXakFwTVNjd0pRWURWUVFERXg1cmQzY3RkMlZpYUc5dmF5MXpaWEoyYVdObExtdDNkeTF6CmVYTjBaVzB3Z2dHaU1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQmp3QXdnZ0dLQW9JQmdRQ3IzQ0VkWFdrdm9FRjQKOVZ3T0s4eEl3dTZEK3F5ODYyaXNCY0U2MjhxaVpGT2VDYXIvNllqc05EZXpXRms0OWVjN1JjQVVoZS8vZ1FsWAozT2VqU2dBNmNiWk4wMXFoTkdVNmY4T1VIT1hldlZMaSt4ckVGQmUwMGY0QmRtMEJGbVFSUEkxSTd1UlRVQ0dkCmNYM1RjN2RzelBLSmVBZmxBSGFBaVZXd2ZzN29hNlVEQ2hvVnl4NDJENkVaU09hdHhkNkJkMDFPWHJDUXNhMGYKZEtQRkQwT054WHNnZFZxWTZWME83MDhkazRMclZNVWhlNzFVQ2hsRkw4MWQvMGt4ZEhzeVNBL3BVMk9DZDNxUwpHeHVMazBUUi80WUE5Qmd3QXhXZXRoVGo0NUZyZlBrMVhTS1BrOFJDM0xjckZ3SThBWWI3TndSV1VlMnBGclUyCks4VDJOcXY2VGZ2d1RiTm9VWkxTcHR0c0l2c2UyTStzK3UxaUh1NVlNcUpBNVB5NTVBVHBydEY4WmFucFdRVksKbHdlZGdVb1cyQ0U1RGJQaWxGQ2hyOEQ4NmFMZXVWTk1sTzdZY0dOcUZBTjhkRitNSmlCTCttY3ZIaERrT3pDTApzZHVnbUhqalZFa0ZRSzI1NmpPK0ZHMFAxZE84b2QzRWtPVTkydkxsVktnSjQ4SWpoZ2NDQXdFQUFhT0JoekNCCmhEQU9CZ05WSFE4QkFmOEVCQU1DQXFRd0V3WURWUjBsQkF3d0NnWUlLd1lCQlFVSEF3RXdEd1lEVlIwVEFRSC8KQkFVd0F3RUIvekFkQmdOVkhRNEVGZ1FVZHB0cWU0SDdqWkI3akhRVDU0R2NIY2I5RDZJd0xRWURWUjBSQkNZdwpKSUlpYTNkM0xYZGxZbWh2YjJzdGMyVnlkbWxqWlM1cmQzY3RjM2x6ZEdWdExuTjJZekFOQmdrcWhraUc5dzBCCkFRc0ZBQU9DQVlFQW0xZ2p0RmRRdnh0N2hsNnY1eGRWUmxPZjMvTTRhWmo3WElsUEovMUdZdkhoZm84OHBBTGgKdGNhemVkVWJwWGFmTzNvWGZSMldpdVZxMXV6dXlxdC9sYllxOXBtZmk2endZZGhVZWhhQmlwNU1ReS9qNmZnVgo3YmVibTNxVXZYU3hGR0d4TFJpU2ltTkNlZDZzR3lBc1N6UVVvM1pIQ1lKUnpiRmJtRjFKWWxaZzBwQVBtbTVqCkN5aXFsampqVmtRaVA5aXlBWlcvSUxCdVJLWFlmdWwvcG1Fcy9ISGVMMG9WS01hb3Z4cVA3cXBtcDVEK2lETlYKay9LcXFYV2F6Y21ycEZJVzFhd3RYT2hISW5nNlBUVTh4K3dUeXJFUWcrSUs3a3BMZWMrVldSQythUVMyTjRoeApqNEhXMTZCWjY5bEVCTy9DMDNiOGQrSFNTdEtXM01qSWRnYWN3NloyR2JwSm1jdUpPQklnaUVvQVZWRnZTZDdCCmwxN0NtMm13dnVBNG1tWFBaNEd6TzRjdGhpK2JUVGZiL0FTMnltNk8rbzRqODZWQmxlajJPTm4vbHVYSUpUcTQKcmttdkk4YitTdk1nSWdnK2NVaTQydGpCZHdHQngxTk16OG81dWdDMEpVU0tXL204YTZUSVcxUDVSVlYwc0UyTwpxaUNKNzA3Q0lkcFcKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+  tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUVWVENDQXIyZ0F3SUJBZ0lCQVRBTkJna3Foa2lHOXcwQkFRc0ZBREFwTVNjd0pRWURWUVFERXg1cmQzY3QKZDJWaWFHOXZheTF6WlhKMmFXTmxMbXQzZHkxemVYTjBaVzB3SGhjTk1qUXhNakUzTWpBek56TTNXaGNOTWpVdwpNekUzTWpBek56TTNXakFwTVNjd0pRWURWUVFERXg1cmQzY3RkMlZpYUc5dmF5MXpaWEoyYVdObExtdDNkeTF6CmVYTjBaVzB3Z2dHaU1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQmp3QXdnZ0dLQW9JQmdRQ3IzQ0VkWFdrdm9FRjQKOVZ3T0s4eEl3dTZEK3F5ODYyaXNCY0U2MjhxaVpGT2VDYXIvNllqc05EZXpXRms0OWVjN1JjQVVoZS8vZ1FsWAozT2VqU2dBNmNiWk4wMXFoTkdVNmY4T1VIT1hldlZMaSt4ckVGQmUwMGY0QmRtMEJGbVFSUEkxSTd1UlRVQ0dkCmNYM1RjN2RzelBLSmVBZmxBSGFBaVZXd2ZzN29hNlVEQ2hvVnl4NDJENkVaU09hdHhkNkJkMDFPWHJDUXNhMGYKZEtQRkQwT054WHNnZFZxWTZWME83MDhkazRMclZNVWhlNzFVQ2hsRkw4MWQvMGt4ZEhzeVNBL3BVMk9DZDNxUwpHeHVMazBUUi80WUE5Qmd3QXhXZXRoVGo0NUZyZlBrMVhTS1BrOFJDM0xjckZ3SThBWWI3TndSV1VlMnBGclUyCks4VDJOcXY2VGZ2d1RiTm9VWkxTcHR0c0l2c2UyTStzK3UxaUh1NVlNcUpBNVB5NTVBVHBydEY4WmFucFdRVksKbHdlZGdVb1cyQ0U1RGJQaWxGQ2hyOEQ4NmFMZXVWTk1sTzdZY0dOcUZBTjhkRitNSmlCTCttY3ZIaERrT3pDTApzZHVnbUhqalZFa0ZRSzI1NmpPK0ZHMFAxZE84b2QzRWtPVTkydkxsVktnSjQ4SWpoZ2NDQXdFQUFhT0JoekNCCmhEQU9CZ05WSFE4QkFmOEVCQU1DQXFRd0V3WURWUjBsQkF3d0NnWUlLd1lCQlFVSEF3RXdEd1lEVlIwVEFRSC8KQkFVd0F3RUIvekFkQmdOVkhRNEVGZ1FVZHB0cWU0SDdqWkI3akhRVDU0R2NIY2I5RDZJd0xRWURWUjBSQkNZdwpKSUlpYTNkM0xYZGxZbWh2YjJzdGMyVnlkbWxqWlM1cmQzY3RjM2x6ZEdWdExuTjJZekFOQmdrcWhraUc5dzBCCkFRc0ZBQU9DQVlFQW0xZ2p0RmRRdnh0N2hsNnY1eGRWUmxPZjMvTTRhWmo3WElsUEovMUdZdkhoZm84OHBBTGgKdGNhemVkVWJwWGFmTzNvWGZSMldpdVZxMXV6dXlxdC9sYllxOXBtZmk2endZZGhVZWhhQmlwNU1ReS9qNmZnVgo3YmVibTNxVXZYU3hGR0d4TFJpU2ltTkNlZDZzR3lBc1N6UVVvM1pIQ1lKUnpiRmJtRjFKWWxaZzBwQVBtbTVqCkN5aXFsampqVmtRaVA5aXlBWlcvSUxCdVJLWFlmdWwvcG1Fcy9ISGVMMG9WS01hb3Z4cVA3cXBtcDVEK2lETlYKay9LcXFYV2F6Y21ycEZJVzFhd3RYT2hISW5nNlBUVTh4K3dUeXJFUWcrSUs3a3BMZWMrVldSQythUVMyTjRoeApqNEhXMTZCWjY5bEVCTy9DMDNiOGQrSFNTdEtXM01qSWRnYWN3NloyR2JwSm1jdUpPQklnaUVvQVZWRnZTZDdCCmwxN0NtMm13dnVBNG1tWFBaNEd6TzRjdGhpK2JUVGZiL0FTMnltNk8rbzRqODZWQmxlajJPTm4vbHVYSUpUcTQKcmttdkk4YitTdk1nSWdnK2NVaTQydGpCZHdHQngxTk16OG81dWdDMEpVU0tXL204YTZUSVcxUDVSVlYwc0UyTwpxaUNKNzA3Q0lkcFcKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+  tls.key: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlHNUFJQkFBS0NBWUVBcTl3aEhWMXBMNkJCZVBWY0Rpdk1TTUx1Zy9xc3ZPdG9yQVhCT3R2S29tUlRuZ21xCi8rbUk3RFEzczFoWk9QWG5PMFhBRklYdi80RUpWOXpubzBvQU9uRzJUZE5hb1RSbE9uL0RsQnpsM3IxUzR2c2EKeEJRWHROSCtBWFp0QVJaa0VUeU5TTzdrVTFBaG5YRjkwM08zYk16eWlYZ0g1UUIyZ0lsVnNIN082R3VsQXdvYQpGY3NlTmcraEdVam1yY1hlZ1hkTlRsNndrTEd0SDNTanhROURqY1Y3SUhWYW1PbGREdTlQSFpPQzYxVEZJWHU5ClZBb1pSUy9OWGY5Sk1YUjdNa2dQNlZOamduZDZraHNiaTVORTBmK0dBUFFZTUFNVm5yWVU0K09SYTN6NU5WMGkKajVQRVF0eTNLeGNDUEFHRyt6Y0VWbEh0cVJhMU5pdkU5amFyK2szNzhFMnphRkdTMHFiYmJDTDdIdGpQclBydApZaDd1V0RLaVFPVDh1ZVFFNmE3UmZHV3A2VmtGU3BjSG5ZRktGdGdoT1EyejRwUlFvYS9BL09taTNybFRUSlR1CjJIQmphaFFEZkhSZmpDWWdTL3BuTHg0UTVEc3dpN0hib0poNDQxUkpCVUN0dWVvenZoUnREOVhUdktIZHhKRGwKUGRyeTVWU29DZVBDSTRZSEFnTUJBQUVDZ2dHQkFLcnB5S1VEZU5BOGQrQnJZcGxWUlZ3M1FDMVE1dWthMUlYLwpVeVBONGIrT052bzhjeXIrZllVcWlScDdDb0J6VFByTmF6RDk0cWdmRThPbGxWZjNDRE1YVTA0aW0wY21iR1c1CkdpLzZiVUVPMTVlVVVoSWVTVlV5WVlIaTNKVHdSNlE4cStXVWJzM01LeUlBOURtT0l5UzR6WnVaRzRESzdRNzMKaFpoNUJCeHdzVEpNb1pSNjVCaXZnbTg2Nk81NGtjZi9kWW95OFRWMC9jOENtTHdwYWUxY01BOGZwbkhiNHdndgpSbWNMaEcrMVpqYmVjSE5iZDdZdXkvWm5JOHRqSW1DVzJ4azZQTytzTzNNKzBJNEM1ZW5hRmlibGkwL0NRNjBOCkVLMUViMmxCa1ZEL1NLTnlTdXB5NUxWVFZwWnJ1b00wYjlLN1RPVXY3OTNXM3dqd0pHd3d2My9jOExLeDNmWjUKWkR3SFlnS2k3MGUxTnJJSVhrejcyYUVOZlo5dXpLb0I2d2MzS3JXWnpoZitzZGRGZUIyRU5xa251WnBlS2xDVgp1QkNUd2IyWk1RRmExNTg3akpSRGkxdUpvU3BaRzNnaEhWNDVzUmgwTy9CQnFleTUwd010VWRSdi84OVVmb3dUCkUvd2xlU0FIdzRkemtTNm9FZlNoVzhDMUNCR0dnUUtCd1FEV3JRMHIxb2c5SFdOY1JPMDkxNUZlMkppQ2psWFIKVnhlNmI0SWdIVDM1WVp5Y1FyWTlLbFRKTGlZWng0VW1Ec1hCVDdnTHZ0eVNIOTY3OHlLcE9tdGVlTmRpeTFnRApkZGN1WmxDdnVvdzc3SlN1OUx5TEVMN3JEKzhRc2VIcDVPZTNncUpZbGtyWVJIa2k2SVVVbm5GMElnYmZMUHJqCkMvQ0d2ekxYeU5Iang3MHlZV2ZqeW84QW5qUkgyOTNibWx0cWdZSXJWQ0dxNlNWYnl1SnpsRWRQaUl3OFhlb3gKcFV4blRRV0RmRDQyQ3MzZnd1RnY1b1hOVDd6aEY0and2RWtDZ2NFQXpQRW9NaE40NlI4NVRrNVRkU2V2WUt6eAo4NjcvSnRmb05ubHNpN0phcnBkd2dvb1h1TFpkUzEraTZqQnRma01oVWhwaEdLbkJYbDVyRld3bDNqRkZ6cytwCkoxNUlHaGdIeHZvRTJyZHY4bVVLOTlrQzV6WFcyenRmUlVtajA3LzRUWHdDVzdQR1ZZaExPcFJMMWYvNk52STYKdWdtUHExSXZOM0NaanVHMTY0ajhaNFJudHFOMVE5akt4MG5PVUZJdUZDdWExQi9ZdDRZd0gxb1k0emlyb20vKwp3K254WVduMWtqbGZ3aXZQNHloWW8rT2hrWlpJRjBpUjZUb0sydy9QQW9IQkFJQ0FFNXRERGtmdTJIUDV1anpEClZYdjlrTVROYUdjbmg4ZU1TY3JwVmhoNXFtSUt1TVZDR29CV0JHNTM5S2FFUHpGb2c1VmNTUEdhN0J0Ni9TdHAKRWEzNkRZdFFocjJEZ3l0K0NSdzNRUXY1b0VKZHNxSlhnc0IzeURVcEZUNkpTMzZZVG85U1h6aTNPLzkrU1hLLwpLTkJJTWU3VElOWlpaajl5SVgveThGZzFUblhpd21vaTdKaUZHbXhOR3E4QjVXaUtYeDJLZmFDdGNEUlM3RndjCnpOYTV1Si9GNDVLV0RIYmxMc0MyMVJKS1ExT0dkcVVoeXNQTDBCYTRuTHJsS1FLQndHcmJWdVQ5U0M3dEM5a3IKZDlKL0ZhOW5uV1E4bTJjcWJqWnhDMHF2ZlI3SmNXMXZDVDFUUU1PN0l0dk8wbGhpTWk1MytLWitaSWVLM1hTMwpCZXViYjFXTTZ4ck95dk5vRWk0S1VKdWx4Nlh3VDA2NWhRei9BbjhlcnVjV3BXZ1VFU2g5ZjFGSEpDT1d3L3JRCk5kWm4rSlBMcXhrelFRakgranlDNWw0Y2k5azZmTGlRemU3cHZZdlpycWxJYjExcjdBQ3lWN0ZBeGFPelFNWW8KR1Evb2pYMU52ZDF5emx2SGZyWjJXZHFKTTRTeWxiMG1SQ2ovM2FqZU9zNExhSHVkK3dLQndHK1h5TjVpRVpyMwpvelRZT2tvMDI4OXN1cjl3bElkWU9hMG1FYVJxNDFNSWdpUnd0d0p4b0p1Ylg4RzUvQjAramkvOENjU2dxa1U2CkV6YzJCREtoWERTU1VvWEYwZU5wNERGL2hJREZxYmxNSm4wcUZienNxbHd5VGpxeFI4YjVKQmtzdzlONGVQbW4KbEc5ZHVOZ0NKVFVobHB4dXpPd1dObldXaW5qUi9FNUR3a21KVml4K3pmRkhxWFRiT2lzQVVIT1dVRk9KQXB0VwpjdDhNWEtpcE9BQ0tYSTk0NjlwaFVDZVJnTHNzOGhub3gzTnlPOXllQTNOdXJsdGpNdEUvT0E9PQotLS0tLUVORCBSU0EgUFJJVkFURSBLRVktLS0tLQo=
+kind: Secret
+metadata:
+  name: kww-snatch-certificates
+  namespace: kww-system
+type: kubernetes.io/tls
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: kyma-workloads-webhook
+    control-plane: controller-manager
+  name: kww-controller-manager-metrics-service
+  namespace: kww-system
+spec:
+  ports:
+  - name: https
+    port: 8443
+    protocol: TCP
+    targetPort: 8443
+  selector:
+    control-plane: controller-manager
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: kyma-workloads-webhook
+  name: kww-webhook-service
+  namespace: kww-system
+spec:
+  ports:
+  - port: 443
+    protocol: TCP
+    targetPort: 9443
+  selector:
+    control-plane: controller-manager
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: kyma-workloads-webhook
+    control-plane: controller-manager
+  name: kww-controller-manager
+  namespace: kww-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      control-plane: controller-manager
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: manager
+      labels:
+        control-plane: controller-manager
+    spec:
+      containers:
+      - args:
+        - --metrics-bind-address=:8443
+        - --health-probe-bind-address=:8081
+        - --secret-name=snatch-certificates
+        - --secret-namespace=system
+        command:
+        - /manager
+        image: ttl.sh/wh_test1:1h
+        imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        name: manager
+        ports:
+        - containerPort: 9443
+          name: webhook-server
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 500m
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - mountPath: /tmp
+          name: snatch-certificates
+          readOnly: true
+      securityContext:
+        runAsNonRoot: true
+      serviceAccountName: kww-controller-manager
+      terminationGracePeriodSeconds: 10
+      volumes:
+      - name: snatch-certificates
+        secret:
+          secretName: kww-snatch-certificates
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: kww-mutating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: kww-webhook-service
+      namespace: kww-system
+      path: /mutate--v1-pod
+  failurePolicy: Fail
+  name: mpod-v1.kb.io
+  namespaceSelector:
+    matchLabels:
+      test: me
+  rules:
+  - apiGroups:
+    - ""
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - pods
+  sideEffects: None
