@@ -47,7 +47,7 @@ import (
 )
 
 const (
-	certDir                  = "/tmp"
+	certDir                  = "/tmp/"
 	certificateAuthorityName = "ca.crt"
 	flagWebhookConfigName    = "webhook-cfg-name"
 	patchFieldManagerName    = "snatch"
@@ -151,7 +151,7 @@ func main() {
 				context.Background(),
 				rtClient,
 				callback.BuildUpdateCABundleOpts{
-					Name:         flagWebhookConfigName,
+					Name:         mWhCfgName,
 					CABundle:     data,
 					FieldManager: patchFieldManagerName,
 				})
@@ -222,4 +222,10 @@ func main() {
 		logger.Error(err, "problem running manager")
 		os.Exit(1)
 	}
+}
+
+type MainOpts struct{}
+
+func Main(opts MainOpts) error {
+	panic("not implemented yet")
 }

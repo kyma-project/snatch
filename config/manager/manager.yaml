@@ -62,11 +62,10 @@ spec:
         - /manager
         args:
           - --health-probe-bind-address=:8081
-          - --secret-name=snatch-certificates
-          - --secret-namespace=system
+          - --webhook-cfg-name=kww-mutating-webhook-configuration
         image: controller:latest
         # TODO(dev): Remove this
-        imagePullPolicy: Always
+        imagePullPolicy: Never
         name: manager
         securityContext:
           allowPrivilegeEscalation: false

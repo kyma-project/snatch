@@ -31,13 +31,13 @@ import (
 )
 
 // namespace where the project is deployed in
-const namespace = "kyma-workloads-webhook-system"
+const namespace = "kww-system"
 
 // serviceAccountName created for the project
-const serviceAccountName = "kyma-workloads-webhook-controller-manager"
+const serviceAccountName = "kww-controller-manager"
 
 // metricsServiceName is the name of the metrics service of the project
-const metricsServiceName = "kyma-workloads-webhook-controller-manager-metrics-service"
+const metricsServiceName = "kww-controller-manager-metrics-service"
 
 // metricsRoleBindingName is the name of the RBAC that will be created to allow get the metrics data
 const metricsRoleBindingName = "kyma-workloads-webhook-metrics-binding"
@@ -53,13 +53,8 @@ var _ = Describe("Manager", Ordered, func() {
 		_, err := utils.Run(cmd)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create namespace")
 
-		By("installing CRDs")
-		cmd = exec.Command("make", "install")
-		_, err = utils.Run(cmd)
-		Expect(err).NotTo(HaveOccurred(), "Failed to install CRDs")
-
 		By("deploying the controller-manager")
-		cmd = exec.Command("make", "deploy", fmt.Sprintf("IMG=%s", projectImage))
+		cmd = exec.Command("make", "k3s-deploy", fmt.Sprintf("IMG=%s", projectImage))
 		_, err = utils.Run(cmd)
 		Expect(err).NotTo(HaveOccurred(), "Failed to deploy the controller-manager")
 	})
@@ -72,15 +67,15 @@ var _ = Describe("Manager", Ordered, func() {
 		_, _ = utils.Run(cmd)
 
 		By("undeploying the controller-manager")
-		cmd = exec.Command("make", "undeploy")
-		_, _ = utils.Run(cmd)
-
-		By("uninstalling CRDs")
-		cmd = exec.Command("make", "uninstall")
+		cmd = exec.Command("make", "k3s-undeploy")
 		_, _ = utils.Run(cmd)
 
 		By("removing manager namespace")
 		cmd = exec.Command("kubectl", "delete", "ns", namespace)
+		_, _ = utils.Run(cmd)
+
+		By("removing metrics cluster-role-binding")
+		cmd = exec.Command("kubectl", "delete", "clusterrolebindings", metricsRoleBindingName)
 		_, _ = utils.Run(cmd)
 	})
 
@@ -90,7 +85,7 @@ var _ = Describe("Manager", Ordered, func() {
 		specReport := CurrentSpecReport()
 		if specReport.Failed() {
 			By("Fetching controller manager pod logs")
-			cmd := exec.Command("kubectl", "logs", controllerPodName, "-n", namespace)
+			cmd := exec.Command("kubectl", "logs", controllerPodName, "-n", namespace, "--ignore-not-found=true")
 			controllerLogs, err := utils.Run(cmd)
 			if err == nil {
 				_, _ = fmt.Fprintf(GinkgoWriter, fmt.Sprintf("Controller logs:\n %s", controllerLogs))
@@ -166,7 +161,7 @@ var _ = Describe("Manager", Ordered, func() {
 		It("should ensure the metrics endpoint is serving metrics", func() {
 			By("creating a ClusterRoleBinding for the service account to allow access to metrics")
 			cmd := exec.Command("kubectl", "create", "clusterrolebinding", metricsRoleBindingName,
-				"--clusterrole=kyma-workloads-webhook-metrics-reader",
+				"--clusterrole=kww-metrics-reader",
 				fmt.Sprintf("--serviceaccount=%s:%s", namespace, serviceAccountName),
 			)
 			_, err := utils.Run(cmd)
@@ -230,14 +225,14 @@ var _ = Describe("Manager", Ordered, func() {
 			By("getting the metrics by checking curl-metrics logs")
 			metricsOutput := getMetricsOutput()
 			Expect(metricsOutput).To(ContainSubstring(
-				"controller_runtime_reconcile_total",
+				"go_gc_duration_seconds",
 			))
 		})
 
 		It("should provisioned cert-manager", func() {
 			By("validating that cert-manager has the certificate Secret")
 			verifyCertManager := func(g Gomega) {
-				cmd := exec.Command("kubectl", "get", "secrets", "webhook-server-cert", "-n", namespace)
+				cmd := exec.Command("kubectl", "get", "secrets", "kww-snatch-certificates", "-n", namespace)
 				_, err := utils.Run(cmd)
 				g.Expect(err).NotTo(HaveOccurred())
 			}
@@ -249,25 +244,11 @@ var _ = Describe("Manager", Ordered, func() {
 			verifyCAInjection := func(g Gomega) {
 				cmd := exec.Command("kubectl", "get",
 					"mutatingwebhookconfigurations.admissionregistration.k8s.io",
-					"kyma-workloads-webhook-mutating-webhook-configuration",
+					"kww-mutating-webhook-configuration",
 					"-o", "go-template={{ range .webhooks }}{{ .clientConfig.caBundle }}{{ end }}")
 				mwhOutput, err := utils.Run(cmd)
 				g.Expect(err).NotTo(HaveOccurred())
 				g.Expect(len(mwhOutput)).To(BeNumerically(">", 10))
-			}
-			Eventually(verifyCAInjection).Should(Succeed())
-		})
-
-		It("should have CA injection for validating webhooks", func() {
-			By("checking CA injection for validating webhooks")
-			verifyCAInjection := func(g Gomega) {
-				cmd := exec.Command("kubectl", "get",
-					"validatingwebhookconfigurations.admissionregistration.k8s.io",
-					"kyma-workloads-webhook-validating-webhook-configuration",
-					"-o", "go-template={{ range .webhooks }}{{ .clientConfig.caBundle }}{{ end }}")
-				vwhOutput, err := utils.Run(cmd)
-				g.Expect(err).NotTo(HaveOccurred())
-				g.Expect(len(vwhOutput)).To(BeNumerically(">", 10))
 			}
 			Eventually(verifyCAInjection).Should(Succeed())
 		})

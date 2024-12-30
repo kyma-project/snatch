@@ -4,8 +4,8 @@ resources:
 - manager.yaml
 images:
 - name: controller
-  newName: ttl.sh/wh_test1
-  newTag: 1h
+  newName: example.com/kyma-workloads-webhook
+  newTag: v0.0.1
 - name: controller-admission
   newName: IMG=admission-testme
   newTag: latest

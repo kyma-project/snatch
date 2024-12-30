@@ -70,12 +70,12 @@ test: manifests generate fmt vet envtest ## Run tests.
 # - CERT_MANAGER_INSTALL_SKIP=true
 .PHONY: test-e2e
 test-e2e: manifests generate fmt vet ## Run the e2e tests. Expected an isolated environment using Kind.
-	@command -v kind >/dev/null 2>&1 || { \
-		echo "Kind is not installed. Please install Kind manually."; \
+	@command -v k3d >/dev/null 2>&1 || { \
+		echo "K3D is not installed. Please install K3D manually."; \
 		exit 1; \
 	}
-	@kind get clusters | grep -q 'kind' || { \
-		echo "No Kind cluster is running. Please start a Kind cluster before running the e2e tests."; \
+	@k3d cluster ls | grep -q 'k3s-default' || { \
+		echo "No K3D cluster is running. Please start a K3D cluster before running the e2e tests."; \
 		exit 1; \
 	}
 	go test ./test/e2e/ -v -ginkgo.v
@@ -157,9 +157,18 @@ deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	$(KUSTOMIZE) build config/default | $(KUBECTL) apply -f -
 
+.PHONY: k3s-deploy
+k3s-deploy: manifests kustomize ## Deploy controller to the K3s cluster specified in ~/.kube/config.
+	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	$(KUSTOMIZE) build config/k3d | $(KUBECTL) apply -f -
+
 .PHONY: undeploy
 undeploy: kustomize ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
 	$(KUSTOMIZE) build config/default | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -
+
+.PHONY: k3s-undeploy
+k3s-undeploy: kustomize ## Undeploy controller from the K3s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
+	$(KUSTOMIZE) build config/k3d | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -
 
 ##@ Dependencies
 
