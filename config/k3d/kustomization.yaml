@@ -12,4 +12,7 @@ resources:
 - ../rbac
 - ../webhook
 - metrics_service.yaml
-- snatch_secret.yaml
+- ../certmanager
+
+sortOptions:
+  order: fifo
