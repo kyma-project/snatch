@@ -162,6 +162,11 @@ k3s-deploy: manifests kustomize ## Deploy controller to the K3s cluster specifie
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	$(KUSTOMIZE) build config/k3d | $(KUBECTL) apply -f -
 
+.PHONY: certmanager-deploy
+certmanager-deploy: 
+	cd config/manager
+	$(KUSTOMIZE) build config/certmanager | $(KUBECTL) apply -f -
+
 .PHONY: undeploy
 undeploy: kustomize ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
 	$(KUSTOMIZE) build config/default | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -

@@ -253,16 +253,63 @@ var _ = Describe("Manager", Ordered, func() {
 			Eventually(verifyCAInjection).Should(Succeed())
 		})
 
-		// +kubebuilder:scaffold:e2e-webhooks-checks
+		It("should react to the CA bundle rotation", func() {
+			By("deleting certificate")
+			deleteCertificate := func(g Gomega) {
+				cmd := exec.Command("kubectl", "delete",
+					"certificates.cert-manager.io",
+					"-n", namespace, "kww-kyma")
+				_, err := utils.Run(cmd)
+				g.Expect(err).NotTo(HaveOccurred())
+			}
+			Eventually(deleteCertificate).Should(Succeed())
 
-		// TODO: Customize the e2e test suite with scenarios specific to your project.
-		// Consider applying sample/CR(s) and check their status and/or verifying
-		// the reconciliation by using the metrics, i.e.:
-		// metricsOutput := getMetricsOutput()
-		// Expect(metricsOutput).To(ContainSubstring(
-		//    fmt.Sprintf(`controller_runtime_reconcile_total{controller="%s",result="success"} 1`,
-		//    strings.ToLower(<Kind>),
-		// ))
+			By("deleting certificate secret")
+			deleteCertificateSecret := func(g Gomega) {
+				cmd := exec.Command("kubectl", "delete",
+					"secret", "-n", namespace,
+					"snatch-certificates")
+				_, err := utils.Run(cmd)
+				g.Expect(err).NotTo(HaveOccurred())
+			}
+			Eventually(deleteCertificateSecret).Should(Succeed())
+
+			By("re-deploying certificate and issuer")
+			deployIssuerAndCertificate := func(g Gomega) {
+				cmd := exec.Command("make", "certmanager-deploy")
+				_, err := utils.Run(cmd)
+				Expect(err).NotTo(HaveOccurred(), "Failed to re-deploy the issuer and the certificate")
+			}
+			Eventually(deployIssuerAndCertificate).Should(Succeed())
+
+			By("fetch new CA Bundle from certificate secret")
+			var newCABundle string
+			waitSecretCreated := func(g Gomega) {
+				cmd := exec.Command("kubectl", "get", "secret", "snatch-certificates", "-n", namespace,
+					"-o", `go-template={{index .data "ca.crt"}}`)
+
+				var err error
+				newCABundle, err = utils.Run(cmd)
+
+				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(newCABundle).ShouldNot(BeEmpty())
+			}
+			Eventually(waitSecretCreated).Should(Succeed())
+
+			By("checking CA injection for mutating webhooks")
+			verifyCAInjection := func(g Gomega) {
+				cmd := exec.Command("kubectl", "get",
+					"mutatingwebhookconfigurations.admissionregistration.k8s.io",
+					"kww-mutating-webhook-configuration",
+					"-o", "go-template={{(index .webhooks 0).clientConfig.caBundle}}")
+				mwhOutput, err := utils.Run(cmd)
+				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(mwhOutput).To(Equal(newCABundle))
+			}
+			Eventually(verifyCAInjection).Should(Succeed())
+		})
+
+		// +kubebuilder:scaffold:e2e-webhooks-checks
 	})
 })
 
