@@ -4,6 +4,9 @@ on:
   push:
   pull_request:
 
+env:
+  IMG: snatch:local
+
 jobs:
   test-e2e:
     name: Run on Ubuntu
