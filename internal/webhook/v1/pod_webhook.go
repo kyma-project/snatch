@@ -55,7 +55,7 @@ func (d *PodCustomDefaulter) Default(ctx context.Context, obj runtime.Object) er
 	if !ok {
 		return fmt.Errorf("expected an Pod object but got %T", obj)
 	}
-	podlog.Info("Defaulting for Pod", "name", pod.GetName())
+	podlog.Info("Defaulting for Pod", "name", pod.GetName(), "ns", pod.GetNamespace())
 
 	// TODO(user): fill in your defaulting logic.
 

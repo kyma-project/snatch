@@ -42,6 +42,9 @@ const metricsServiceName = "snatch-controller-manager-metrics-service"
 // metricsRoleBindingName is the name of the RBAC that will be created to allow get the metrics data
 const metricsRoleBindingName = "kyma-workloads-webhook-metrics-binding"
 
+// path to simple pod definition
+const simplePod = "./test/e2e/resources/simple-pod.yaml"
+
 var _ = Describe("Manager", Ordered, func() {
 	var controllerPodName string
 
@@ -52,6 +55,11 @@ var _ = Describe("Manager", Ordered, func() {
 		cmd := exec.Command("kubectl", "create", "ns", namespace)
 		_, err := utils.Run(cmd)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create namespace")
+
+		By("labeling kyma-system namespace")
+		cmd = exec.Command("kubectl", "label", "namespace", namespace, "test=me")
+		_, err = utils.Run(cmd)
+		Expect(err).NotTo(HaveOccurred(), "Failed to deploy the controller-manager")
 
 		By("deploying the controller-manager")
 		cmd = exec.Command("make", "k3s-deploy", fmt.Sprintf("IMG=%s", projectImage))
@@ -309,6 +317,45 @@ var _ = Describe("Manager", Ordered, func() {
 			Eventually(verifyCAInjection).WithPolling(5 * time.Second).Should(Succeed())
 		})
 
+		It("should trigger webhook", func() {
+			By("create simple pod in labeled namespace")
+			deleteCertificate := func(g Gomega) {
+				cmd := exec.Command("kubectl", "apply", "-n", namespace, "-f", simplePod)
+				_, err := utils.Run(cmd)
+				g.Expect(err).NotTo(HaveOccurred())
+			}
+			Eventually(deleteCertificate).Should(Succeed())
+
+			// NOTE add extra verification step once the implementation will be finished
+			By("verify webhook was triggered")
+			verifyWebhookTriggered := func(g Gomega) {
+				cmd := exec.Command("kubectl", "logs", controllerPodName, "-n", namespace)
+				output, err := utils.Run(cmd)
+				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(output).To(ContainSubstring(`{"name": "pause", "ns": "kyma-system"}`))
+			}
+			Eventually(verifyWebhookTriggered).Should(Succeed())
+		})
+
+		It("should not trigger webhook", func() {
+			By("create simple pod in non labeled namespace")
+			deleteCertificate := func(g Gomega) {
+				cmd := exec.Command("kubectl", "apply", "-f", simplePod)
+				_, err := utils.Run(cmd)
+				g.Expect(err).NotTo(HaveOccurred())
+			}
+			Eventually(deleteCertificate).Should(Succeed())
+
+			// NOTE add extra verification step once the implementation will be finished
+			By("verify webhook was triggered")
+			verifyWebhookTriggered := func(g Gomega) {
+				cmd := exec.Command("kubectl", "logs", controllerPodName, "-n", namespace)
+				output, err := utils.Run(cmd)
+				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(output).NotTo(ContainSubstring(`{"name": "pause", "ns": "default"}`))
+			}
+			Eventually(verifyWebhookTriggered).Should(Succeed())
+		})
 		// +kubebuilder:scaffold:e2e-webhooks-checks
 	})
 })
