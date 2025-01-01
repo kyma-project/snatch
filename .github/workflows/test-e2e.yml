@@ -4,9 +4,6 @@ on:
   push:
   pull_request:
 
-env:
-  IMG: snatch:local
-
 jobs:
   test-e2e:
     name: Run on Ubuntu
@@ -31,9 +28,6 @@ jobs:
 
       - name: Create K3D cluster
         run: k3d cluster create
-
-      - name: Build image
-        run: make docker-build
 
       - name: Running Test e2e
         run: |

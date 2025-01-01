@@ -70,10 +70,10 @@ var _ = BeforeSuite(func() {
 	_, err = utils.Run(cmd)
 	ExpectWithOffset(1, err).NotTo(HaveOccurred(), "Failed to run make manifests")
 
-	//By("building the manager(Operator) image")
-	//cmd = exec.Command("make", "docker-build", fmt.Sprintf("IMG=%s", projectImage))
-	//_, err = utils.Run(cmd)
-	//ExpectWithOffset(1, err).NotTo(HaveOccurred(), "Failed to build the manager(Operator) image")
+	By("building the manager(Operator) image")
+	cmd = exec.Command("make", "docker-build", fmt.Sprintf("IMG=%s", projectImage))
+	_, err = utils.Run(cmd)
+	ExpectWithOffset(1, err).NotTo(HaveOccurred(), "Failed to build the manager(Operator) image")
 
 	By("loading the manager(Operator) image on K3S")
 	err = utils.LoadImageToK3SClusterWithName(projectImage)

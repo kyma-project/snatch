@@ -306,7 +306,7 @@ var _ = Describe("Manager", Ordered, func() {
 				g.Expect(err).NotTo(HaveOccurred())
 				g.Expect(mwhOutput).To(Equal(newCABundle))
 			}
-			Eventually(verifyCAInjection).Should(Succeed())
+			Eventually(verifyCAInjection).WithPolling(5 * time.Second).Should(Succeed())
 		})
 
 		// +kubebuilder:scaffold:e2e-webhooks-checks
@@ -344,7 +344,7 @@ func serviceAccountToken() (string, error) {
 
 		// Parse the JSON output to extract the token
 		var token tokenRequest
-		err = json.Unmarshal([]byte(output), &token)
+		err = json.Unmarshal(output, &token)
 		g.Expect(err).NotTo(HaveOccurred())
 
 		out = token.Status.Token
