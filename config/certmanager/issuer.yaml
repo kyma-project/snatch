@@ -5,7 +5,7 @@ metadata:
     app.kubernetes.io/name: kyma-workloads-webhook
     app.kubernetes.io/managed-by: kustomize
   name: kyma
-  namespace: kww-system
+  namespace: kyma-system
 spec:
   selfSigned: {}
 

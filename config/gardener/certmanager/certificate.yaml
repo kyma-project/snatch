@@ -8,9 +8,9 @@ metadata:
   name: kyma
   namespace: system
 spec:
-  commonName: kww-webhook-service.kww-system
+  commonName: snatch-webhook-service.kyma-system
   dnsNames:
-  - kww-webhook-service.kww-system.svc
+  - snatch-webhook-service.kyma-system.svc
   isCA: true
   issuerRef:
     name: kyma

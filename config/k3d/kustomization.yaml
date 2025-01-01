@@ -1,5 +1,5 @@
-namespace: kww-system
-namePrefix: kww-
+namespace: kyma-system
+namePrefix: snatch-
 
 patches:
 - path: manager_webhook_patch.yaml

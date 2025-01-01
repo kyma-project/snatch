@@ -31,13 +31,13 @@ import (
 )
 
 // namespace where the project is deployed in
-const namespace = "kww-system"
+const namespace = "kyma-system"
 
 // serviceAccountName created for the project
-const serviceAccountName = "kww-controller-manager"
+const serviceAccountName = "snatch-controller-manager"
 
 // metricsServiceName is the name of the metrics service of the project
-const metricsServiceName = "kww-controller-manager-metrics-service"
+const metricsServiceName = "snatch-controller-manager-metrics-service"
 
 // metricsRoleBindingName is the name of the RBAC that will be created to allow get the metrics data
 const metricsRoleBindingName = "kyma-workloads-webhook-metrics-binding"
@@ -161,7 +161,7 @@ var _ = Describe("Manager", Ordered, func() {
 		It("should ensure the metrics endpoint is serving metrics", func() {
 			By("creating a ClusterRoleBinding for the service account to allow access to metrics")
 			cmd := exec.Command("kubectl", "create", "clusterrolebinding", metricsRoleBindingName,
-				"--clusterrole=kww-metrics-reader",
+				"--clusterrole=snatch-metrics-reader",
 				fmt.Sprintf("--serviceaccount=%s:%s", namespace, serviceAccountName),
 			)
 			_, err := utils.Run(cmd)
@@ -244,7 +244,7 @@ var _ = Describe("Manager", Ordered, func() {
 			verifyCAInjection := func(g Gomega) {
 				cmd := exec.Command("kubectl", "get",
 					"mutatingwebhookconfigurations.admissionregistration.k8s.io",
-					"kww-mutating-webhook-configuration",
+					"snatch-mutating-webhook-configuration",
 					"-o", "go-template={{ range .webhooks }}{{ .clientConfig.caBundle }}{{ end }}")
 				mwhOutput, err := utils.Run(cmd)
 				g.Expect(err).NotTo(HaveOccurred())
@@ -258,7 +258,7 @@ var _ = Describe("Manager", Ordered, func() {
 			deleteCertificate := func(g Gomega) {
 				cmd := exec.Command("kubectl", "delete",
 					"certificates.cert-manager.io",
-					"-n", namespace, "kww-kyma")
+					"-n", namespace, "snatch-kyma")
 				_, err := utils.Run(cmd)
 				g.Expect(err).NotTo(HaveOccurred())
 			}
@@ -300,7 +300,7 @@ var _ = Describe("Manager", Ordered, func() {
 			verifyCAInjection := func(g Gomega) {
 				cmd := exec.Command("kubectl", "get",
 					"mutatingwebhookconfigurations.admissionregistration.k8s.io",
-					"kww-mutating-webhook-configuration",
+					"snatch-mutating-webhook-configuration",
 					"-o", "go-template={{(index .webhooks 0).clientConfig.caBundle}}")
 				mwhOutput, err := utils.Run(cmd)
 				g.Expect(err).NotTo(HaveOccurred())
