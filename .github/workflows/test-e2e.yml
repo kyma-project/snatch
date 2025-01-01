@@ -4,6 +4,9 @@ on:
   push:
   pull_request:
 
+env:
+  IMG: snatch:local
+
 jobs:
   test-e2e:
     name: Run on Ubuntu
@@ -15,19 +18,22 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '~1.22'
+          go-version: '~1.23.4'
 
-      - name: Install the latest version of kind
-        run: |
-          curl -Lo ./kind https://kind.sigs.k8s.io/dl/latest/kind-linux-amd64
-          chmod +x ./kind
-          sudo mv ./kind /usr/local/bin/kind
+      - name: Install the latest version of K3D
+        env:
+          K3D_URL: https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh
+          DEFAULT_K3D_VERSION: v5.6.0
+        run: curl --silent --fail $K3D_URL | TAG=$DEFAULT_K3D_VERSION bash
 
-      - name: Verify kind installation
-        run: kind version
+      - name: Verify K3D installation
+        run: k3d version
 
-      - name: Create kind cluster
-        run: kind create cluster
+      - name: Create K3D cluster
+        run: k3d cluster create
+
+      - name: Build image
+        run: make docker-build
 
       - name: Running Test e2e
         run: |
