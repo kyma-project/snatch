@@ -35,4 +35,17 @@ jobs:
       - name: Running Test e2e
         run: |
           go mod tidy
-          make test-e2e
+          make test-e2e | tee test.log
+      
+      - name: Generate summary
+        if: success() || failure()
+        run: |
+          {
+            echo '## Snatch e2e-test log'
+            echo "<details>"
+            echo "<summary>click to expand logs</summary>"
+            printf '\n```\n'
+            cat test.log
+            printf '\n```\n'
+            echo "</details>"
+          } >> $GITHUB_STEP_SUMMARY

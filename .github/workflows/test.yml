@@ -20,4 +20,18 @@ jobs:
       - name: Running Tests
         run: |
           go mod tidy
-          make test
+          make test | tee test.log
+
+      - name: Generate summary
+        if: success() || failure()
+        run: |
+          {
+            echo '## Snatch test log'
+            echo "<details>"
+            echo "<summary>click to expand logs</summary>"
+            printf '\n```\n'
+            cat test.log
+            printf '\n```\n'
+            echo "</details>"
+          } >> $GITHUB_STEP_SUMMARY
+
