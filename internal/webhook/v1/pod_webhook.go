@@ -27,14 +27,20 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 )
 
+const (
+	kymaNodeSelectorKey = "worker.gardener.cloud/pool"
+)
+
 // nolint:unused
 // log is for logging in this package.
 var podlog = logf.Log.WithName("pod-resource")
 
 // SetupPodWebhookWithManager registers the webhook for Pod in the manager.
-func SetupPodWebhookWithManager(mgr ctrl.Manager) error {
+func SetupPodWebhookWithManager(mgr ctrl.Manager, nodeSelectorValue string) error {
 	return ctrl.NewWebhookManagedBy(mgr).For(&corev1.Pod{}).
-		WithDefaulter(&PodCustomDefaulter{}).
+		WithDefaulter(&PodCustomDefaulter{
+			nodeSelectorValue: nodeSelectorValue,
+		}).
 		Complete()
 }
 
@@ -44,7 +50,9 @@ func SetupPodWebhookWithManager(mgr ctrl.Manager) error {
 
 // PodCustomDefaulter struct is responsible for setting default values on the custom resource of the
 // Kind Pod when those are created or updated.
-type PodCustomDefaulter struct{}
+type PodCustomDefaulter struct {
+	nodeSelectorValue string
+}
 
 var _ webhook.CustomDefaulter = &PodCustomDefaulter{}
 
@@ -55,9 +63,16 @@ func (d *PodCustomDefaulter) Default(ctx context.Context, obj runtime.Object) er
 	if !ok {
 		return fmt.Errorf("expected an Pod object but got %T", obj)
 	}
+
 	podlog.Info("Defaulting for Pod", "name", pod.GetName(), "ns", pod.GetNamespace())
-
-	// TODO(user): fill in your defaulting logic.
-
+	d.applyDefaults(pod)
 	return nil
+}
+
+func (d *PodCustomDefaulter) applyDefaults(pod *corev1.Pod) {
+	if pod.Spec.NodeSelector == nil {
+		pod.Spec.NodeSelector = map[string]string{}
+	}
+
+	pod.Spec.NodeSelector[kymaNodeSelectorKey] = d.nodeSelectorValue
 }

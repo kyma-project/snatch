@@ -44,6 +44,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 )
 
+const testNodeKymaLabelValue = "snatch-test"
+
 // These tests use Ginkgo (BDD-style Go testing framework). Refer to
 // http://onsi.github.io/ginkgo/ to learn more about Ginkgo.
 
@@ -117,7 +119,7 @@ var _ = BeforeSuite(func() {
 	})
 	Expect(err).NotTo(HaveOccurred())
 
-	err = SetupPodWebhookWithManager(mgr)
+	err = SetupPodWebhookWithManager(mgr, testNodeKymaLabelValue)
 	Expect(err).NotTo(HaveOccurred())
 
 	// +kubebuilder:scaffold:webhook

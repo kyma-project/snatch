@@ -11,6 +11,6 @@ patches:
         path: /webhooks/0/namespaceSelector
         value:
           matchLabels:
-              test: me
+              managed-by: kyma
     target:
       kind: MutatingWebhookConfiguration

@@ -50,6 +50,7 @@ const (
 	certDir                  = "/tmp/"
 	certificateAuthorityName = "ca.crt"
 	flagWebhookConfigName    = "webhook-cfg-name"
+	flagKymaWorkerPoolName   = "kyma-worker-pool-name"
 	patchFieldManagerName    = "snatch"
 	webhookServerKeyName     = "tls.key"
 	webhookServerCertName    = "tls.crt"
@@ -74,7 +75,9 @@ func main() {
 	var secureMetrics bool
 	var enableHTTP2 bool
 	var tlsOpts []func(*tls.Config)
+
 	var mWhCfgName string
+	var kymaWorkerPoolName string
 
 	flag.StringVar(&metricsAddr, "metrics-bind-address", "0", "The address the metrics endpoint binds to. "+
 		"Use :8443 for HTTPS or :8080 for HTTP, or leave as 0 to disable the metrics service.")
@@ -85,6 +88,7 @@ func main() {
 		"If set, HTTP/2 will be enabled for the metrics and webhook servers")
 	// webhook flags
 	flag.StringVar(&mWhCfgName, flagWebhookConfigName, "", "The name of the mutating webhook configuration to be updated.")
+	flag.StringVar(&kymaWorkerPoolName, flagKymaWorkerPoolName, "", "The name of the workerpool the kyma components will be scheduled on.")
 
 	opts := zap.Options{
 		Development: true,
@@ -93,7 +97,10 @@ func main() {
 	flag.Parse()
 
 	// validate flags
-	for _, pair := range [][2]string{{flagWebhookConfigName, mWhCfgName}} {
+	for _, pair := range [][2]string{
+		{flagWebhookConfigName, mWhCfgName},
+		{flagKymaWorkerPoolName, kymaWorkerPoolName},
+	} {
 		if pair[1] == "" {
 			logger.Error(errInvalidArgument, pair[0], pair[0])
 			os.Exit(1)
@@ -201,7 +208,7 @@ func main() {
 
 	// nolint:goconst
 	if os.Getenv("ENABLE_WEBHOOKS") != "false" {
-		if err = webhookcorev1.SetupPodWebhookWithManager(mgr); err != nil {
+		if err = webhookcorev1.SetupPodWebhookWithManager(mgr, kymaWorkerPoolName); err != nil {
 			logger.Error(err, "unable to create webhook", "webhook", "Pod")
 			os.Exit(1)
 		}

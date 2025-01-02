@@ -77,7 +77,7 @@ var _ = BeforeSuite(func() {
 
 	By("loading the manager(Operator) image on K3S")
 	err = utils.LoadImageToK3SClusterWithName(projectImage)
-	ExpectWithOffset(1, err).NotTo(HaveOccurred(), "Failed to load the manager(Operator) image into Kind")
+	ExpectWithOffset(1, err).NotTo(HaveOccurred(), "Failed to load the manager(Operator) image into K3S")
 
 	// The tests-e2e are intended to run on a temporary cluster that is created and destroyed for testing.
 	// To prevent errors when tests run in environments with Prometheus or CertManager already installed,

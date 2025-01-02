@@ -6,6 +6,12 @@ patches:
 - path: manager_metrics_patch.yaml
   target:
     kind: Deployment
+- patch: |-
+    - op: add
+      path: /spec/template/spec/containers/0/args/-
+      value: --kyma-worker-pool-name=snatch-test
+  target:
+    kind: Deployment
 
 resources:
 - ../manager

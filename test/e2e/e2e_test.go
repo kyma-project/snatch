@@ -45,19 +45,29 @@ const metricsRoleBindingName = "kyma-workloads-webhook-metrics-binding"
 // path to simple pod definition
 const simplePod = "./test/e2e/resources/simple-pod.yaml"
 
+const testNodeKymaLabelValue = "snatch-test"
+
+const testNodeName = "k3d-k3s-default-server-0"
+
 var _ = Describe("Manager", Ordered, func() {
 	var controllerPodName string
 
 	// Before running the tests, set up the environment by creating the namespace,
 	// installing CRDs, and deploying the controller.
 	BeforeAll(func() {
-		By("creating manager namespace")
-		cmd := exec.Command("kubectl", "create", "ns", namespace)
+		By("label node")
+		label := fmt.Sprintf("worker.gardener.cloud/pool=%s", testNodeKymaLabelValue)
+		cmd := exec.Command("kubectl", "label", "node", testNodeName, label)
 		_, err := utils.Run(cmd)
+		Expect(err).NotTo(HaveOccurred(), "Failed to label node")
+
+		By("creating manager namespace")
+		cmd = exec.Command("kubectl", "create", "ns", namespace)
+		_, err = utils.Run(cmd)
 		Expect(err).NotTo(HaveOccurred(), "Failed to create namespace")
 
 		By("labeling kyma-system namespace")
-		cmd = exec.Command("kubectl", "label", "namespace", namespace, "test=me")
+		cmd = exec.Command("kubectl", "label", "namespace", namespace, "managed-by=kyma")
 		_, err = utils.Run(cmd)
 		Expect(err).NotTo(HaveOccurred(), "Failed to deploy the controller-manager")
 
@@ -326,13 +336,13 @@ var _ = Describe("Manager", Ordered, func() {
 			}
 			Eventually(deleteCertificate).Should(Succeed())
 
-			// NOTE add extra verification step once the implementation will be finished
 			By("verify webhook was triggered")
 			verifyWebhookTriggered := func(g Gomega) {
-				cmd := exec.Command("kubectl", "logs", controllerPodName, "-n", namespace)
+				cmd := exec.Command("kubectl", "get", "pod", "-n", namespace, "pause", "-o", "go-template={{.spec.nodeSelector}}")
 				output, err := utils.Run(cmd)
 				g.Expect(err).NotTo(HaveOccurred())
-				g.Expect(output).To(ContainSubstring(`{"name": "pause", "ns": "kyma-system"}`))
+				expected := fmt.Sprintf("worker.gardener.cloud/pool:%s", testNodeKymaLabelValue)
+				g.Expect(output).To(ContainSubstring(expected))
 			}
 			Eventually(verifyWebhookTriggered).Should(Succeed())
 		})
@@ -349,10 +359,10 @@ var _ = Describe("Manager", Ordered, func() {
 			// NOTE add extra verification step once the implementation will be finished
 			By("verify webhook was triggered")
 			verifyWebhookTriggered := func(g Gomega) {
-				cmd := exec.Command("kubectl", "logs", controllerPodName, "-n", namespace)
+				cmd := exec.Command("kubectl", "get", "pod", "pause", "-o", "go-template={{.spec.nodeSelector}}")
 				output, err := utils.Run(cmd)
 				g.Expect(err).NotTo(HaveOccurred())
-				g.Expect(output).NotTo(ContainSubstring(`{"name": "pause", "ns": "default"}`))
+				g.Expect(output).To(Equal("<no value>"))
 			}
 			Eventually(verifyWebhookTriggered).Should(Succeed())
 		})
