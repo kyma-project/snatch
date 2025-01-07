@@ -1,0 +1,16 @@
+resources:
+- manifests.yaml
+- service.yaml
+
+configurations:
+- kustomizeconfig.yaml
+
+patches:
+  - patch: |-
+      - op: add
+        path: /webhooks/0/namespaceSelector
+        value:
+          matchLabels:
+              managed-by: kyma
+    target:
+      kind: MutatingWebhookConfiguration

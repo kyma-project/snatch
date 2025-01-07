@@ -1,0 +1,18 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  labels:
+    app.kubernetes.io/created-by: snatch
+    app.kubernetes.io/part-of: snatch
+    app.kubernetes.io/managed-by: kustomize
+  name: kyma  # this name should match the one appeared in kustomizeconfig.yaml
+  namespace: kyma-system
+spec:
+  dnsNames:
+  - snatch-webhook-service.kyma-system.svc
+  - snatch-webhook-service.kyma-system.svc.cluster.local
+  issuerRef:
+    kind: Issuer
+    name: kyma
+  secretName: snatch-certificates # this secret will not be prefixed, since it's not managed by kustomize
+

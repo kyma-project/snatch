@@ -1,0 +1,10 @@
+# The pod definition used to test mutating webhook.
+# The image size should be relatively small.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pause
+spec:
+  containers:
+  - name: pause
+    image: k8s.gcr.io/pause
