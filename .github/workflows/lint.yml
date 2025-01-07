@@ -2,7 +2,22 @@ name: Lint
 
 on:
   push:
+    branches:
+      - main
+    paths-ignore:
+      - .reuse
+      - LICENSES/
+      - LICENSE
+      - .gitignore
+      - "**.md"
   pull_request:
+    types: [opened, synchronize, reopened]
+    paths-ignore:
+      - .reuse
+      - LICENSES/
+      - LICENSE
+      - .gitignore
+      - "**.md"
 
 jobs:
   lint:
