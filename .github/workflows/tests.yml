@@ -25,7 +25,7 @@ jobs:
         if: success() || failure()
         run: |
           {
-            echo '## Snatch test log'
+            echo '## Snatch controller-tests log'
             echo "<details>"
             echo "<summary>click to expand logs</summary>"
             printf '\n```\n'
@@ -65,7 +65,7 @@ jobs:
         if: success() || failure()
         run: |
           {
-            echo '## Snatch e2e-test log'
+            echo '## Snatch e2e-tests log'
             echo "<details>"
             echo "<summary>click to expand logs</summary>"
             printf '\n```\n'
