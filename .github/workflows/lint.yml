@@ -2,11 +2,26 @@ name: Lint
 
 on:
   push:
+    branches:
+      - main
+    paths-ignore:
+      - .reuse
+      - LICENSES/
+      - LICENSE
+      - .gitignore
+      - "**.md"
   pull_request:
+    types: [opened, synchronize, reopened]
+    paths-ignore:
+      - .reuse
+      - LICENSES/
+      - LICENSE
+      - .gitignore
+      - "**.md"
 
 jobs:
   lint:
-    name: Run on Ubuntu
+    name: run-linter
     runs-on: ubuntu-latest
     steps:
       - name: Clone the code
@@ -15,9 +30,9 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '~1.22'
+          go-version: '~1.23.4'
 
       - name: Run linter
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@aaa42aa0628b4ae2578232a66b541047968fac86
         with:
-          version: v1.61
+          version: v1.61.0

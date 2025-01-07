@@ -1,15 +1,54 @@
-name: E2E Tests
+name: Tests
 
 on:
   push:
+    branches:
+      - main
+    paths-ignore:
+      - .reuse
+      - LICENSES/
+      - LICENSE
+      - .gitignore
+      - "**.md"
   pull_request:
-
-env:
-  IMG: snatch:local
+    types: [opened, synchronize, reopened]
+    paths-ignore:
+      - .reuse
+      - LICENSES/
+      - LICENSE
+      - .gitignore
+      - "**.md"
 
 jobs:
-  test-e2e:
-    name: Run on Ubuntu
+  controller-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone the code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '~1.23.4'
+
+      - name: Running Tests
+        run: |
+          go mod tidy
+          make test | tee test.log
+
+      - name: Generate summary
+        if: success() || failure()
+        run: |
+          {
+            echo '## Snatch controller-tests log'
+            echo "<details>"
+            echo "<summary>click to expand logs</summary>"
+            printf '\n```\n'
+            cat test.log
+            printf '\n```\n'
+            echo "</details>"
+          } >> $GITHUB_STEP_SUMMARY
+  e2e-tests:
     runs-on: ubuntu-latest
     steps:
       - name: Clone the code
@@ -36,12 +75,12 @@ jobs:
         run: |
           go mod tidy
           make test-e2e | tee test.log
-      
+
       - name: Generate summary
         if: success() || failure()
         run: |
           {
-            echo '## Snatch e2e-test log'
+            echo '## Snatch e2e-tests log'
             echo "<details>"
             echo "<summary>click to expand logs</summary>"
             printf '\n```\n'

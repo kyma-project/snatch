@@ -1,5 +1,4 @@
-name: Snatch
-
+name: Build image
 on:
   push:
     branches:
@@ -51,6 +50,7 @@ jobs:
         run: echo "latest=latest" >> $GITHUB_OUTPUT
 
   build-image:
+    name: run-image-builder
     needs: setup
     uses: kyma-project/test-infra/.github/workflows/image-builder.yml@main
     with:

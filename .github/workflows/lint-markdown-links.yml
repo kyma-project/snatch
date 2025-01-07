@@ -1,4 +1,4 @@
-name: Lint Markdown Links
+name: Documentation
 run-name: ${{github.event.pull_request.title}}
 on: [ pull_request ]
 jobs:
