@@ -1,0 +1,8 @@
+module-name: snatch
+protecode:
+  - europe-docker.pkg.dev/kyma-project/prod/snatch:v20250107-7f1e539e
+whitesource:
+  language: golang-mod
+  subprojects: false
+  exclude:
+    - "**/*_test.go"
