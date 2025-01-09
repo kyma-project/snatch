@@ -67,7 +67,7 @@ var _ = Describe("Manager", Ordered, func() {
 		Expect(err).NotTo(HaveOccurred(), "Failed to create namespace")
 
 		By("labeling kyma-system namespace")
-		cmd = exec.Command("kubectl", "label", "namespace", namespace, "managed-by=kyma")
+		cmd = exec.Command("kubectl", "label", "namespace", namespace, "kyma-project.io/managed-by=kyma")
 		_, err = utils.Run(cmd)
 		Expect(err).NotTo(HaveOccurred(), "Failed to deploy the controller-manager")
 
