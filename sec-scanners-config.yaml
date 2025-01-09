@@ -1,4 +1,4 @@
-module-name: snatch
+module-name: kim-snatch
 protecode:
   - europe-docker.pkg.dev/kyma-project/prod/snatch:latest
 whitesource:
