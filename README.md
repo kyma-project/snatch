@@ -1,4 +1,6 @@
-> **NOTE:** This is a general template that you can use for a project README.md. Except for the mandatory sections, use only those sections that suit your use case but keep the proposed section order.
+[![REUSE status](https://api.reuse.software/badge/github.com/kyma-project/kim-snatch)](https://api.reuse.software/info/github.com/kyma-project/kim-snatch)
+
+> > **NOTE:** This is a general template that you can use for a project README.md. Except for the mandatory sections, use only those sections that suit your use case but keep the proposed section order.
 >
 > Mandatory sections: 
 > - `Overview`
