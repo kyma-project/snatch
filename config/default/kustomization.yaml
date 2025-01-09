@@ -56,7 +56,7 @@ patches:
 replacements:
   - source:
       kind: Deployment
-      fieldPath: metadata.name
+      fieldPath: metadata.namespace
     targets:
       - select:
           name: kyma

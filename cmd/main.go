@@ -215,14 +215,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	defultPod := webhookcorev1.ApplyDefaults(kymaWorkerPoolName)
+	defaultPod := webhookcorev1.ApplyDefaults(kymaWorkerPoolName)
 	if len(nodeList.Items) == 0 {
 		logger.Error(err, "kyma worker pool does not exist, switching to fallback",
 			"workerPoolName", kymaWorkerPoolName)
-		defultPod = webhookcorev1.ApplyDefaultsFallback(kymaWorkerPoolName)
+		defaultPod = webhookcorev1.ApplyDefaultsFallback(kymaWorkerPoolName)
 	}
 
-	if err = webhookcorev1.SetupPodWebhookWithManager(mgr, defultPod); err != nil {
+	if err = webhookcorev1.SetupPodWebhookWithManager(mgr, defaultPod); err != nil {
 		logger.Error(err, "unable to create webhook", "webhook", "Pod")
 		os.Exit(1)
 	}
