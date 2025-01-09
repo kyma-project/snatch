@@ -54,7 +54,7 @@ jobs:
     needs: setup
     uses: kyma-project/test-infra/.github/workflows/image-builder.yml@main
     with:
-      name: snatch
+      name: kim-snatch
       dockerfile: Dockerfile
       context: .
       tags: |
@@ -69,7 +69,7 @@ jobs:
       - name: "Generate summary"
         run: |
           {
-            echo '# Snatch'
+            echo '# kim-snatch'
             # if build-image was successful
             if [ "${{ needs.build-image.result }}" == "success" ]; then
               printf '\n\n## Image\n'

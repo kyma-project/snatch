@@ -1,4 +1,4 @@
-name: Documentation
+name: Documentation-CRON
 run-name: ${{github.event.pull_request.title}}
 on:
     schedule:
