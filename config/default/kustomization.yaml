@@ -49,7 +49,7 @@ patches:
 
 replacements:
   - source:
-      kind: Namespace
+      kind: Deployment
       fieldPath: metadata.name
     targets:
       - select:

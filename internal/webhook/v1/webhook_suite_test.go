@@ -119,7 +119,7 @@ var _ = BeforeSuite(func() {
 	})
 	Expect(err).NotTo(HaveOccurred())
 
-	err = SetupPodWebhookWithManager(mgr, testNodeKymaLabelValue)
+	err = SetupPodWebhookWithManager(mgr, ApplyDefaults(testNodeKymaLabelValue))
 	Expect(err).NotTo(HaveOccurred())
 
 	// +kubebuilder:scaffold:webhook

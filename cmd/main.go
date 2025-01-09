@@ -26,6 +26,7 @@ import (
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 
+	corev1 "k8s.io/api/core/v1"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/util/retry"
@@ -206,12 +207,24 @@ func main() {
 		os.Exit(1)
 	}
 
-	// nolint:goconst
-	if os.Getenv("ENABLE_WEBHOOKS") != "false" {
-		if err = webhookcorev1.SetupPodWebhookWithManager(mgr, kymaWorkerPoolName); err != nil {
-			logger.Error(err, "unable to create webhook", "webhook", "Pod")
-			os.Exit(1)
-		}
+	var nodeList corev1.NodeList
+	if err := rtClient.List(context.TODO(), &nodeList, client.MatchingLabels{
+		"worker.gardener.cloud/pool": kymaWorkerPoolName,
+	}); err != nil {
+		logger.Error(err, "unable to fetch node list")
+		os.Exit(1)
+	}
+
+	defultPod := webhookcorev1.ApplyDefaults(kymaWorkerPoolName)
+	if len(nodeList.Items) == 0 {
+		logger.Error(err, "kyma worker pool does not exist, switching to fallback",
+			"workerPoolName", kymaWorkerPoolName)
+		defultPod = webhookcorev1.ApplyDefaultsFallback(kymaWorkerPoolName)
+	}
+
+	if err = webhookcorev1.SetupPodWebhookWithManager(mgr, defultPod); err != nil {
+		logger.Error(err, "unable to create webhook", "webhook", "Pod")
+		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder
 
@@ -229,10 +242,4 @@ func main() {
 		logger.Error(err, "problem running manager")
 		os.Exit(1)
 	}
-}
-
-type MainOpts struct{}
-
-func Main(opts MainOpts) error {
-	panic("not implemented yet")
 }

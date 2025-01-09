@@ -356,7 +356,6 @@ var _ = Describe("Manager", Ordered, func() {
 			}
 			Eventually(deleteCertificate).Should(Succeed())
 
-			// NOTE add extra verification step once the implementation will be finished
 			By("verify webhook was triggered")
 			verifyWebhookTriggered := func(g Gomega) {
 				cmd := exec.Command("kubectl", "get", "pod", "pause", "-o", "go-template={{.spec.nodeSelector}}")
