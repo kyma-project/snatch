@@ -44,7 +44,7 @@ func SetupPodWebhookWithManager(mgr ctrl.Manager, defdefaultPod defaultPod) erro
 		Complete()
 }
 
-// +kubebuilder:webhook:path=/mutate--v1-pod,mutating=true,failurePolicy=ignore,sideEffects=None,groups="",resources=pods,verbs=create;update,versions=v1,name=mpod-v1.kb.io,admissionReviewVersions=v1
+// +kubebuilder:webhook:path=/mutate--v1-pod,mutating=true,failurePolicy=ignore,sideEffects=None,groups="",resources=pods,verbs=create,versions=v1,name=mpod-v1.kb.io,admissionReviewVersions=v1,matchPolicy=Exact,reinvocationPolicy=Never
 
 //+kubebuilder:rbac:groups="",resources=nodes,verbs=list
 //+kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=mutatingwebhookconfigurations,verbs=get;patch
@@ -58,7 +58,24 @@ type PodCustomDefaulter struct {
 var _ webhook.CustomDefaulter = &PodCustomDefaulter{}
 
 // Default implements webhook.CustomDefaulter so a webhook will be registered for the Kind Pod.
-func (d *PodCustomDefaulter) Default(ctx context.Context, obj runtime.Object) error {
+func (d *PodCustomDefaulter) Default(ctx context.Context, obj runtime.Object) (err error) {
+	defer func() {
+		r := recover()
+		if r == nil {
+			// no panice
+			return
+		}
+
+		switch x := r.(type) {
+		case string:
+			err = fmt.Errorf("%s", x)
+		case error:
+			err = x
+		default:
+			err = fmt.Errorf("unknown defaulting function panic: %s", r)
+		}
+	}()
+
 	pod, ok := obj.(*corev1.Pod)
 
 	if !ok {

@@ -2,7 +2,7 @@ apiVersion: cert.gardener.cloud/v1alpha1
 kind: Issuer
 metadata:
   labels:
-    app.kubernetes.io/name: kyma-workloads-webhook
+    app.kubernetes.io/name: kim-snatch
     app.kubernetes.io/managed-by: kustomize
   name: kyma
   namespace: system

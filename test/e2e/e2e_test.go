@@ -27,7 +27,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/kyma-project/kyma-workloads-webhook/test/utils"
+	"github.com/kyma-project/kim-snatch/test/utils"
 )
 
 // namespace where the project is deployed in
@@ -40,7 +40,7 @@ const serviceAccountName = "snatch-controller-manager"
 const metricsServiceName = "snatch-controller-manager-metrics-service"
 
 // metricsRoleBindingName is the name of the RBAC that will be created to allow get the metrics data
-const metricsRoleBindingName = "kyma-workloads-webhook-metrics-binding"
+const metricsRoleBindingName = "kim-snatch-metrics-binding"
 
 // path to simple pod definition
 const simplePod = "./test/e2e/resources/simple-pod.yaml"
@@ -67,7 +67,7 @@ var _ = Describe("Manager", Ordered, func() {
 		Expect(err).NotTo(HaveOccurred(), "Failed to create namespace")
 
 		By("labeling kyma-system namespace")
-		cmd = exec.Command("kubectl", "label", "namespace", namespace, "kyma-project.io/managed-by=kyma")
+		cmd = exec.Command("kubectl", "label", "namespace", namespace, "operator.kyma-project.io/managed-by=kyma")
 		_, err = utils.Run(cmd)
 		Expect(err).NotTo(HaveOccurred(), "Failed to deploy the controller-manager")
 

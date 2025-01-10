@@ -2,7 +2,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   labels:
-    app.kubernetes.io/name: kyma-workloads-webhook
+    app.kubernetes.io/name: kim-snatch
     app.kubernetes.io/managed-by: kustomize
   name: manager-rolebinding
 roleRef:

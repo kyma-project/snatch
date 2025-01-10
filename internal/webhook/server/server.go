@@ -29,9 +29,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/kyma-project/kyma-workloads-webhook/internal/httpserver"
-	logf "github.com/kyma-project/kyma-workloads-webhook/internal/log"
-	"github.com/kyma-project/kyma-workloads-webhook/internal/metrics"
+	"github.com/kyma-project/kim-snatch/internal/httpserver"
+	logf "github.com/kyma-project/kim-snatch/internal/log"
+	"github.com/kyma-project/kim-snatch/internal/metrics"
 	"sigs.k8s.io/controller-runtime/pkg/certwatcher"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"

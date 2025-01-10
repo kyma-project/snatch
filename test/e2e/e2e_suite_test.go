@@ -25,7 +25,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/kyma-project/kyma-workloads-webhook/test/utils"
+	"github.com/kyma-project/kim-snatch/test/utils"
 )
 
 var (
@@ -52,7 +52,7 @@ var (
 // CertManager and Prometheus.
 func TestE2E(t *testing.T) {
 	RegisterFailHandler(Fail)
-	_, _ = fmt.Fprintf(GinkgoWriter, "Starting kyma-workloads-webhook integration test suite\n")
+	_, _ = fmt.Fprintf(GinkgoWriter, "Starting kim-snatch integration test suite\n")
 	RunSpecs(t, "e2e suite")
 }
 

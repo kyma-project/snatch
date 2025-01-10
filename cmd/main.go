@@ -31,9 +31,9 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/util/retry"
 
-	"github.com/kyma-project/kyma-workloads-webhook/internal/webhook/callback"
-	webhook "github.com/kyma-project/kyma-workloads-webhook/internal/webhook/server"
-	webhookcorev1 "github.com/kyma-project/kyma-workloads-webhook/internal/webhook/v1"
+	"github.com/kyma-project/kim-snatch/internal/webhook/callback"
+	webhook "github.com/kyma-project/kim-snatch/internal/webhook/server"
+	webhookcorev1 "github.com/kyma-project/kim-snatch/internal/webhook/v1"
 	admissionregistration "k8s.io/api/admissionregistration/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -153,7 +153,7 @@ func main() {
 				logger.Error(err, "unable to read certificate")
 				os.Exit(1)
 			}
-			logger.Info("certificate loaded", certificateAuthorityName, string(data))
+			logger.Info("certificate loaded")
 
 			updateCABundle := callback.BuildUpdateCABundle(
 				context.Background(),
@@ -217,8 +217,10 @@ func main() {
 
 	defaultPod := webhookcorev1.ApplyDefaults(kymaWorkerPoolName)
 	if len(nodeList.Items) == 0 {
-		logger.Error(err, "kyma worker pool does not exist, switching to fallback",
-			"workerPoolName", kymaWorkerPoolName)
+		errMsg := fmt.Sprintf("worker.gardener.cloud/pool=%s not exist, switching to fallback",
+			kymaWorkerPoolName)
+
+		logger.Error(errInvalidArgument, errMsg)
 		defaultPod = webhookcorev1.ApplyDefaultsFallback(kymaWorkerPoolName)
 	}
 

@@ -5,8 +5,8 @@
 domain: kyma-project.io
 layout:
 - go.kubebuilder.io/v4
-projectName: kyma-workloads-webhook
-repo: github.com/kyma-project/kyma-workloads-webhook
+projectName: kim-snatch-webhook
+repo: github.com/kyma-project/kim-snatch
 resources:
 - core: true
   group: core

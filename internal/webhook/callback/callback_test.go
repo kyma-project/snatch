@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/kyma-project/kyma-workloads-webhook/internal/webhook/callback"
+	"github.com/kyma-project/kim-snatch/internal/webhook/callback"
 	"github.com/stretchr/testify/assert"
 	admissionregistration "k8s.io/api/admissionregistration/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

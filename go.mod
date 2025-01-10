@@ -1,4 +1,4 @@
-module github.com/kyma-project/kyma-workloads-webhook
+module github.com/kyma-project/kim-snatch
 
 go 1.23.0
 
