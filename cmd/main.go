@@ -26,13 +26,14 @@ import (
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 
+	corev1 "k8s.io/api/core/v1"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/util/retry"
 
-	"github.com/kyma-project/kyma-workloads-webhook/internal/webhook/callback"
-	webhook "github.com/kyma-project/kyma-workloads-webhook/internal/webhook/server"
-	webhookcorev1 "github.com/kyma-project/kyma-workloads-webhook/internal/webhook/v1"
+	"github.com/kyma-project/kim-snatch/internal/webhook/callback"
+	webhook "github.com/kyma-project/kim-snatch/internal/webhook/server"
+	webhookcorev1 "github.com/kyma-project/kim-snatch/internal/webhook/v1"
 	admissionregistration "k8s.io/api/admissionregistration/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -152,7 +153,7 @@ func main() {
 				logger.Error(err, "unable to read certificate")
 				os.Exit(1)
 			}
-			logger.Info("certificate loaded", certificateAuthorityName, string(data))
+			logger.Info("certificate loaded")
 
 			updateCABundle := callback.BuildUpdateCABundle(
 				context.Background(),
@@ -206,12 +207,26 @@ func main() {
 		os.Exit(1)
 	}
 
-	// nolint:goconst
-	if os.Getenv("ENABLE_WEBHOOKS") != "false" {
-		if err = webhookcorev1.SetupPodWebhookWithManager(mgr, kymaWorkerPoolName); err != nil {
-			logger.Error(err, "unable to create webhook", "webhook", "Pod")
-			os.Exit(1)
-		}
+	var nodeList corev1.NodeList
+	if err := rtClient.List(context.TODO(), &nodeList, client.MatchingLabels{
+		"worker.gardener.cloud/pool": kymaWorkerPoolName,
+	}); err != nil {
+		logger.Error(err, "unable to fetch node list")
+		os.Exit(1)
+	}
+
+	defaultPod := webhookcorev1.ApplyDefaults(kymaWorkerPoolName)
+	if len(nodeList.Items) == 0 {
+		errMsg := fmt.Sprintf("worker.gardener.cloud/pool=%s not exist, switching to fallback",
+			kymaWorkerPoolName)
+
+		logger.Error(errInvalidArgument, errMsg)
+		defaultPod = webhookcorev1.ApplyDefaultsFallback(kymaWorkerPoolName)
+	}
+
+	if err = webhookcorev1.SetupPodWebhookWithManager(mgr, defaultPod); err != nil {
+		logger.Error(err, "unable to create webhook", "webhook", "Pod")
+		os.Exit(1)
 	}
 	// +kubebuilder:scaffold:builder
 
@@ -229,10 +244,4 @@ func main() {
 		logger.Error(err, "problem running manager")
 		os.Exit(1)
 	}
-}
-
-type MainOpts struct{}
-
-func Main(opts MainOpts) error {
-	panic("not implemented yet")
 }

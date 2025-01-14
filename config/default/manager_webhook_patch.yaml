@@ -4,7 +4,7 @@ metadata:
   name: controller-manager
   namespace: system
   labels:
-    app.kubernetes.io/name: kyma-workloads-webhook
+    app.kubernetes.io/name: kim-snatch
     app.kubernetes.io/managed-by: kustomize
 spec:
   template:

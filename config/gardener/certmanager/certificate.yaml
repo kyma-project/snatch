@@ -2,15 +2,16 @@ apiVersion: cert.gardener.cloud/v1alpha1
 kind: Certificate
 metadata:
   labels:
-    app.kubernetes.io/created-by: kyma-workloads-webhook
-    app.kubernetes.io/part-of: kyma-workloads-webhook
+    app.kubernetes.io/created-by: kim-snatch
+    app.kubernetes.io/part-of: kim-snatch
     app.kubernetes.io/managed-by: kustomize
   name: kyma
   namespace: system
 spec:
   commonName: snatch-webhook-service.kyma-system
   dnsNames:
-  - snatch-webhook-service.kyma-system.svc
+  - kim-snatch-webhook-service.kyma-system.svc
+  - kim-snatch-webhook-service.kyma-system.svc.cluster.local
   isCA: true
   issuerRef:
     name: kyma

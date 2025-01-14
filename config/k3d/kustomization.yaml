@@ -12,13 +12,25 @@ patches:
       value: --kyma-worker-pool-name=snatch-test
   target:
     kind: Deployment
+- patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/imagePullPolicy
+      value: Never
+  target:
+    kind: Deployment
+- patch: |-
+    - op: add
+      path: /spec/template/spec/containers/0/args/-
+      value: --webhook-cfg-name=snatch-mutating-webhook-configuration
+  target:
+    kind: Deployment
 
 resources:
-- ../manager
 - ../rbac
 - ../webhook
 - metrics_service.yaml
 - ../certmanager
+- ../manager
 
 sortOptions:
   order: fifo

@@ -35,29 +35,47 @@ const (
 // log is for logging in this package.
 var podlog = logf.Log.WithName("pod-resource")
 
+type defaultPod = func(*corev1.Pod)
+
 // SetupPodWebhookWithManager registers the webhook for Pod in the manager.
-func SetupPodWebhookWithManager(mgr ctrl.Manager, nodeSelectorValue string) error {
+func SetupPodWebhookWithManager(mgr ctrl.Manager, defdefaultPod defaultPod) error {
 	return ctrl.NewWebhookManagedBy(mgr).For(&corev1.Pod{}).
-		WithDefaulter(&PodCustomDefaulter{
-			nodeSelectorValue: nodeSelectorValue,
-		}).
+		WithDefaulter(&PodCustomDefaulter{defaultPod: defdefaultPod}).
 		Complete()
 }
 
-// +kubebuilder:webhook:path=/mutate--v1-pod,mutating=true,failurePolicy=ignore,sideEffects=None,groups="",resources=pods,verbs=create;update,versions=v1,name=mpod-v1.kb.io,admissionReviewVersions=v1
+// +kubebuilder:webhook:path=/mutate--v1-pod,mutating=true,failurePolicy=ignore,sideEffects=None,groups="",resources=pods,verbs=create,versions=v1,name=mpod-v1.kb.io,admissionReviewVersions=v1,matchPolicy=Exact,reinvocationPolicy=Never
 
+//+kubebuilder:rbac:groups="",resources=nodes,verbs=list
 //+kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=mutatingwebhookconfigurations,verbs=get;patch
 
 // PodCustomDefaulter struct is responsible for setting default values on the custom resource of the
 // Kind Pod when those are created or updated.
 type PodCustomDefaulter struct {
-	nodeSelectorValue string
+	defaultPod func(*corev1.Pod)
 }
 
 var _ webhook.CustomDefaulter = &PodCustomDefaulter{}
 
 // Default implements webhook.CustomDefaulter so a webhook will be registered for the Kind Pod.
-func (d *PodCustomDefaulter) Default(ctx context.Context, obj runtime.Object) error {
+func (d *PodCustomDefaulter) Default(ctx context.Context, obj runtime.Object) (err error) {
+	defer func() {
+		r := recover()
+		if r == nil {
+			// no panice
+			return
+		}
+
+		switch x := r.(type) {
+		case string:
+			err = fmt.Errorf("%s", x)
+		case error:
+			err = x
+		default:
+			err = fmt.Errorf("unknown defaulting function panic: %s", r)
+		}
+	}()
+
 	pod, ok := obj.(*corev1.Pod)
 
 	if !ok {
@@ -65,14 +83,31 @@ func (d *PodCustomDefaulter) Default(ctx context.Context, obj runtime.Object) er
 	}
 
 	podlog.Info("Defaulting for Pod", "name", pod.GetName(), "ns", pod.GetNamespace())
-	d.applyDefaults(pod)
+	d.defaultPod(pod)
 	return nil
 }
 
-func (d *PodCustomDefaulter) applyDefaults(pod *corev1.Pod) {
-	if pod.Spec.NodeSelector == nil {
-		pod.Spec.NodeSelector = map[string]string{}
-	}
+func ApplyDefaults(nodeSelectorValue string) defaultPod {
+	return func(pod *corev1.Pod) {
+		if pod.Spec.NodeSelector == nil {
+			pod.Spec.NodeSelector = map[string]string{}
+		}
 
-	pod.Spec.NodeSelector[kymaNodeSelectorKey] = d.nodeSelectorValue
+		pod.Spec.NodeSelector[kymaNodeSelectorKey] = nodeSelectorValue
+	}
+}
+
+var ErrNodeNotFound = fmt.Errorf("node selector not found")
+
+func ApplyDefaultsFallback(nodeSelectorValue string) defaultPod {
+	return func(pod *corev1.Pod) {
+		if pod.Annotations == nil {
+			pod.Annotations = map[string]string{}
+		}
+
+		pod.Annotations[kymaNodeSelectorKey] = nodeSelectorValue
+		podlog.Error(ErrNodeNotFound, "unable to set node selector",
+			"node-selector-value", nodeSelectorValue,
+		)
+	}
 }

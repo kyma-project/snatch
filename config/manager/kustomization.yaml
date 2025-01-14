@@ -4,8 +4,8 @@ resources:
 - manager.yaml
 images:
 - name: controller
-  newName: snatch
-  newTag: local
+  newName: ttl.sh/snatch7
+  newTag: 1h
 - name: controller-admission
   newName: IMG=admission-testme
   newTag: latest
