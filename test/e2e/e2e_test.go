@@ -338,10 +338,10 @@ var _ = Describe("Manager", Ordered, func() {
 
 			By("verify webhook was triggered")
 			verifyWebhookTriggered := func(g Gomega) {
-				cmd := exec.Command("kubectl", "get", "pod", "-n", namespace, "pause", "-o", "go-template={{.spec.nodeSelector}}")
+				cmd := exec.Command("kubectl", "get", "pod", "-n", namespace, "pause", "-o", "go-template={{.spec.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution}}")
 				output, err := utils.Run(cmd)
 				g.Expect(err).NotTo(HaveOccurred())
-				expected := fmt.Sprintf("worker.gardener.cloud/pool:%s", testNodeKymaLabelValue)
+				expected := fmt.Sprintf("key:worker.gardener.cloud/pool operator:In values:[%s]", testNodeKymaLabelValue)
 				g.Expect(output).To(ContainSubstring(expected))
 			}
 			Eventually(verifyWebhookTriggered).Should(Succeed())
@@ -358,7 +358,7 @@ var _ = Describe("Manager", Ordered, func() {
 
 			By("verify webhook was triggered")
 			verifyWebhookTriggered := func(g Gomega) {
-				cmd := exec.Command("kubectl", "get", "pod", "pause", "-o", "go-template={{.spec.nodeSelector}}")
+				cmd := exec.Command("kubectl", "get", "pod", "pause", "-o", "go-template={{.spec.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution}}")
 				output, err := utils.Run(cmd)
 				g.Expect(err).NotTo(HaveOccurred())
 				g.Expect(output).To(Equal("<no value>"))
