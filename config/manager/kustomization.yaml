@@ -4,8 +4,8 @@ resources:
 - manager.yaml
 images:
 - name: controller
-  newName: ttl.sh/snatch7
-  newTag: 1h
+  newName: europe-docker.pkg.dev/kyma-project/prod/kim-snatch
+  newTag: 0.0.2
 - name: controller-admission
   newName: IMG=admission-testme
   newTag: latest
