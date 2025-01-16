@@ -61,6 +61,7 @@ var (
 	scheme             = runtime.NewScheme()
 	logger             = ctrl.Log.WithName("setup")
 	errInvalidArgument = fmt.Errorf("invalid argument")
+	omittedNamespaces  = []string{"kube-system"}
 )
 
 func init() {
@@ -215,7 +216,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	defaultPod := webhookcorev1.ApplyDefaults(kymaWorkerPoolName)
+	defaultPod := webhookcorev1.ApplyDefaults(kymaWorkerPoolName, omittedNamespaces)
 	if len(nodeList.Items) == 0 {
 		errMsg := fmt.Sprintf("worker.gardener.cloud/pool=%s not exist, switching to fallback",
 			kymaWorkerPoolName)
