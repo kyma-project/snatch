@@ -54,7 +54,7 @@ func Run(cmd *exec.Cmd) (string, error) {
 	if err := os.Chdir(cmd.Dir); err != nil {
 		_, fmtErr := fmt.Fprintf(GinkgoWriter, "chdir dir: %s\n", err)
 		if fmtErr != nil {
-			return "", fmtErr
+			return "", fmt.Errorf("failed printing message 'chdir dir: %s' to GingkoWriter: %v", err, fmtErr)
 		}
 	}
 
@@ -62,7 +62,7 @@ func Run(cmd *exec.Cmd) (string, error) {
 	command := strings.Join(cmd.Args, " ")
 	_, fmtErr := fmt.Fprintf(GinkgoWriter, "running: %s\n", command)
 	if fmtErr != nil {
-		return "", fmtErr
+		return "", fmt.Errorf("failed printing message 'running: %s' to GingkoWriter: %v", command, fmtErr)
 	}
 	output, err := cmd.CombinedOutput()
 	if err != nil {
