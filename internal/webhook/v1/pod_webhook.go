@@ -19,6 +19,7 @@ package v1
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -82,18 +83,51 @@ func (d *PodCustomDefaulter) Default(ctx context.Context, obj runtime.Object) (e
 		return fmt.Errorf("expected an Pod object but got %T", obj)
 	}
 
-	podlog.Info("Defaulting for Pod", "name", pod.GetName(), "ns", pod.GetNamespace())
+	podlog.Info(
+		"injecting node affinity",
+		"name", pod.GetName(),
+		"ns", pod.GetNamespace(),
+		"uuid", pod.GetUID(),
+		"labels", pod.GetLabels(),
+	)
 	d.defaultPod(pod)
 	return nil
 }
 
-func ApplyDefaults(nodeSelectorValue string) defaultPod {
+func ApplyDefaults(nodeSelectorValue string, omittedNamespaces []string) defaultPod {
 	return func(pod *corev1.Pod) {
-		if pod.Spec.NodeSelector == nil {
-			pod.Spec.NodeSelector = map[string]string{}
+		if slices.Contains(omittedNamespaces, pod.Namespace) {
+			podlog.Info("omitting affinity injection: forbidden namespace", "name", pod.Namespace)
+			return
 		}
 
-		pod.Spec.NodeSelector[kymaNodeSelectorKey] = nodeSelectorValue
+		if pod.Spec.Affinity == nil {
+			pod.Spec.Affinity = &corev1.Affinity{}
+		}
+
+		if pod.Spec.Affinity.NodeAffinity == nil {
+			pod.Spec.Affinity.NodeAffinity = &corev1.NodeAffinity{}
+		}
+
+		if pod.Spec.Affinity.NodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution == nil {
+			pod.Spec.Affinity.NodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution =
+				[]corev1.PreferredSchedulingTerm{}
+		}
+
+		pod.Spec.Affinity.NodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution =
+			append(pod.Spec.Affinity.NodeAffinity.PreferredDuringSchedulingIgnoredDuringExecution,
+				corev1.PreferredSchedulingTerm{
+					Weight: 10,
+					Preference: corev1.NodeSelectorTerm{
+						MatchExpressions: []corev1.NodeSelectorRequirement{
+							{
+								Key:      kymaNodeSelectorKey,
+								Operator: corev1.NodeSelectorOpIn,
+								Values:   []string{nodeSelectorValue},
+							},
+						},
+					},
+				})
 	}
 }
 
