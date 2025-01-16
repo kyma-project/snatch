@@ -37,21 +37,33 @@ const (
 )
 
 func warnError(err error) {
-	_, _ = fmt.Fprintf(GinkgoWriter, "warning: %v\n", err)
+	_, fmtErr := fmt.Fprintf(GinkgoWriter, "warning: %v\n", err)
+	if fmtErr != nil {
+		GinkgoLogr.Error(fmtErr, "Failed to write error to GinkgoWriter")
+	}
 }
 
 // Run executes the provided command within this context
 func Run(cmd *exec.Cmd) (string, error) {
-	dir, _ := GetProjectDir()
+	dir, err := GetProjectDir()
+	if err != nil {
+		return "", err
+	}
 	cmd.Dir = dir
 
 	if err := os.Chdir(cmd.Dir); err != nil {
-		_, _ = fmt.Fprintf(GinkgoWriter, "chdir dir: %s\n", err)
+		_, fmtErr := fmt.Fprintf(GinkgoWriter, "chdir dir: %s\n", err)
+		if fmtErr != nil {
+			return "", fmt.Errorf("failed printing message 'chdir dir: %s' to GingkoWriter: %v", err, fmtErr)
+		}
 	}
 
 	cmd.Env = append(os.Environ(), "GO111MODULE=on")
 	command := strings.Join(cmd.Args, " ")
-	_, _ = fmt.Fprintf(GinkgoWriter, "running: %s\n", command)
+	_, fmtErr := fmt.Fprintf(GinkgoWriter, "running: %s\n", command)
+	if fmtErr != nil {
+		return "", fmt.Errorf("failed printing message 'running: %s' to GingkoWriter: %v", command, fmtErr)
+	}
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return string(output), fmt.Errorf("%s failed with error: (%v) %s", command, err, string(output))

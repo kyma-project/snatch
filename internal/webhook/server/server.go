@@ -29,6 +29,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/go-logr/logr"
 	"github.com/kyma-project/kim-snatch/internal/httpserver"
 	logf "github.com/kyma-project/kim-snatch/internal/log"
 	"github.com/kyma-project/kim-snatch/internal/metrics"
@@ -151,7 +152,8 @@ func (s *DefaultServer) Register(path string, hook http.Handler) {
 
 	s.defaultingOnce.Do(s.setDefaults)
 	if _, found := s.webhooks[path]; found {
-		panic(fmt.Errorf("can't register duplicate path: %v", path))
+		log.Error(nil, fmt.Sprintf("can't register duplicate path: %v", path))
+		return
 	}
 	s.webhooks[path] = hook
 	s.webhookMux.Handle(path, metrics.InstrumentedHook(path, hook))
@@ -188,11 +190,11 @@ func (s *DefaultServer) Start(ctx context.Context) error {
 		cfg.GetCertificate = certWatcher.GetCertificate
 		certWatcher.RegisterCallback(s.Options.Callback)
 
-		go func() {
+		go func(certWatcher *certwatcher.CertWatcher, log logr.Logger, ctx context.Context) {
 			if err := certWatcher.Start(ctx); err != nil {
 				log.Error(err, "certificate watcher error")
 			}
-		}()
+		}(certWatcher, log, ctx)
 	}
 
 	// Load CA to verify client certificate, if configured.
