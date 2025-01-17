@@ -5,7 +5,7 @@ resources:
 images:
 - name: controller
   newName: europe-docker.pkg.dev/kyma-project/prod/kim-snatch
-  newTag: 0.0.2
+  newTag: 0.0.4
 - name: controller-admission
   newName: IMG=admission-testme
   newTag: latest

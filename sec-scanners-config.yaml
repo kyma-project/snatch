@@ -1,6 +1,6 @@
 module-name: kim-snatch
 protecode:
-  - europe-docker.pkg.dev/kyma-project/prod/kim-snatch:0.0.3
+  - europe-docker.pkg.dev/kyma-project/prod/kim-snatch:0.0.4
 whitesource:
   language: golang-mod
   subprojects: false
