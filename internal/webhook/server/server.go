@@ -178,10 +178,7 @@ func (s *DefaultServer) Start(ctx context.Context) error {
 	}
 
 	if cfg.GetCertificate == nil {
-		go func(log logr.Logger, ctx context.Context) {
-			certPath := filepath.Join(s.Options.CertDir, s.Options.CertName)
-			keyPath := filepath.Join(s.Options.CertDir, s.Options.KeyName)
-
+		go func(certPath, keyPath string, callback func(tls.Certificate), log logr.Logger, ctx context.Context) {
 			// Create the certificate watcher and
 			// set the config's GetCertificate on the TLSConfig
 			certWatcher, err := certwatcher.New(certPath, keyPath)
@@ -190,13 +187,13 @@ func (s *DefaultServer) Start(ctx context.Context) error {
 				return
 			}
 			cfg.GetCertificate = certWatcher.GetCertificate
-			certWatcher.RegisterCallback(s.Options.Callback)
+			certWatcher.RegisterCallback(callback)
 
 			if err := certWatcher.Start(ctx); err != nil {
 				log.Error(err, "failed to start cert watcher")
 				return
 			}
-		}(log, ctx)
+		}(filepath.Join(s.Options.CertDir, s.Options.CertName), filepath.Join(s.Options.CertDir, s.Options.KeyName), s.Options.Callback, log, ctx)
 	}
 
 	// Load CA to verify client certificate, if configured.
