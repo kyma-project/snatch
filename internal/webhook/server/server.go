@@ -29,7 +29,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-logr/logr"
 	"github.com/kyma-project/kim-snatch/internal/httpserver"
 	logf "github.com/kyma-project/kim-snatch/internal/log"
 	"github.com/kyma-project/kim-snatch/internal/metrics"
@@ -178,22 +177,27 @@ func (s *DefaultServer) Start(ctx context.Context) error {
 	}
 
 	if cfg.GetCertificate == nil {
-		go func(certPath, keyPath string, callback func(tls.Certificate), log logr.Logger, ctx context.Context) {
-			// Create the certificate watcher and
-			// set the config's GetCertificate on the TLSConfig
-			certWatcher, err := certwatcher.New(certPath, keyPath)
-			if err != nil {
-				log.Error(err, "failed to create cert watcher")
-				return
-			}
-			cfg.GetCertificate = certWatcher.GetCertificate
-			certWatcher.RegisterCallback(callback)
+		certPath := filepath.Join(s.Options.CertDir, s.Options.CertName)
+		keyPath := filepath.Join(s.Options.CertDir, s.Options.KeyName)
 
+		// Create the certificate watcher and
+		// set the config's GetCertificate on the TLSConfig
+		certWatcher, err := certwatcher.New(certPath, keyPath)
+		if err != nil {
+			return err
+		}
+
+		cfg.GetCertificate = certWatcher.GetCertificate
+		certWatcher.RegisterCallback(s.Options.Callback)
+
+		startWatcher := func() {
 			if err := certWatcher.Start(ctx); err != nil {
 				log.Error(err, "failed to start cert watcher")
 				return
 			}
-		}(filepath.Join(s.Options.CertDir, s.Options.CertName), filepath.Join(s.Options.CertDir, s.Options.KeyName), s.Options.Callback, log, ctx)
+		}
+
+		go startWatcher()
 	}
 
 	// Load CA to verify client certificate, if configured.
