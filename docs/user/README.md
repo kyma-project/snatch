@@ -1,15 +1,15 @@
 # KIM Snatch Module
 
 ## Overview
-The KIM-Snatch Module is part of KIM's worker pool feature. It is a mandatory Kyma module and deployed on all Kyma managed runtimes (SKR). 
+The KIM Snatch module is part of Kyma Infrastructure Manager's (KIM) worker pool feature. It is a mandatory Kyma module deployed on all Kyma-managed runtimes. Mandatory modules are not visible for  SAP BTP, Kyma runtime customers and automatically installed by the [KLM](https://github.com/kyma-project/lifecycle-manager) on each SAP BTP, Kyma runtime.
 
-In the past, Kyma had only one worker pool, the so-called "Kyma worker pool", where every workload was scheduled. This Kyma worker pool is mandatory and cannot be removed from a Kyma runtime. It allows for several configuration options, which can be too limited for users requiring special node setups.
+In the past, only one worker pool existed in a Kyma runtime (called "Kyma worker pool"). This Kyma worker pool is mandatory and cannot be removed. It allows several configuration options, which can be too limited for users requiring special node setups.
 
-By introducing the Kyma worker pool feature, customers can add additional worker pools to their Kyma runtime. This enables customer to introduce worker nodes, which are optimized for their particular workload requirements. 
+With the Kyma worker pool feature, you can add customized worker pools to your Kyma runtime and introduce worker nodes optimized for your particular workload requirements. 
 
 The KIM-Snatch module assigns Kyma workloads, for example, Kyma modules' operators, to the Kyma worker pool and ensures that your worker pools are reserved for your workloads. This solution has the following advantages:
 
-* Kyma workloads do not allocate resources to your worker pools, which ensures that you have the full capacity of the worker pool available for your workloads.
+* Kyma workloads are not allocating resources on customized worker pools. This ensures that customers have the full capacity of the worker pool available for their workloads.
 * It reduces the risk of incompatibility between Kyma container images and individually configured worker pools.
 
 ## Technical Approach
