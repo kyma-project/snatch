@@ -7,9 +7,9 @@ In the past, Kyma had only one worker pool, the so-called "Kyma worker pool", wh
 
 By introducing the Kyma worker pool feature, customers can add additional worker pools to their Kyma runtime. This enables customer to introduce worker nodes, which are optimized for their particular workload requirements. 
 
- To ensure customer worker pools are reserved for customer workloads, KIM-Snatch got introduced. It is responsible to assign Kyma workloads (e.g. operators of Kyma modules) to the Kyma worker pool. This has several advantages:
+The KIM-Snatch module assigns Kyma workloads, for example, Kyma modules' operators, to the Kyma worker pool and ensures that your worker pools are reserved for your workloads. This solution has the following advantages:
 
-* Kyma workloads are not allocating resources on customer worker pools. This ensures that customers have the full capacity of the worker pool available for their workloads.
+* Kyma workloads do not allocate resources to your worker pools, which ensures that you have the full capacity of the worker pool available for your workloads.
 * It reduces the risk of incompatibility between Kyma container images and individually configured worker pools.
 
 ## Technical Approach
