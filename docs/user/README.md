@@ -1,9 +1,9 @@
-# KIM Snatch
+# KIM Snatch Module
 
 ## Overview
 The KIM-Snatch Module is part of KIM's worker pool feature. It is a mandatory Kyma module and deployed on all Kyma managed runtimes (SKR). 
 
-In the past, Kyma had only one worker pool (so called "Kyma worker pool") where every workload was scheduled on. This Kyma worker pool is mandatory and cannot be removed from a Kyma runtime. Customers have several configuration options, but it's not fully adjustable and can be too limited for customers who require special node setups.
+In the past, Kyma had only one worker pool, the so-called "Kyma worker pool", where every workload was scheduled. This Kyma worker pool is mandatory and cannot be removed from a Kyma runtime. It allows for several configuration options, which can be too limited for users requiring special node setups.
 
 By introducing the Kyma worker pool feature, customers can add additional worker pools to their Kyma runtime. This enables customer to introduce worker nodes, which are optimized for their particular workload requirements. 
 
