@@ -3,11 +3,11 @@
 ## Overview
 The KIM Snatch module is part of Kyma Infrastructure Manager's (KIM) worker pool feature. It is a mandatory Kyma module deployed on all Kyma-managed runtimes. Mandatory modules are not visible for  SAP BTP, Kyma runtime customers and automatically installed by the [KLM](https://github.com/kyma-project/lifecycle-manager) on each SAP BTP, Kyma runtime.
 
-In the past, only one worker pool existed in a Kyma runtime (called "Kyma worker pool"). This Kyma worker pool is mandatory and cannot be removed. It allows several configuration options, which can be too limited for users requiring special node setups.
+In the past, only one worker pool existed in a Kyma runtime (called `Kyma worker pool`). This `Kyma worker pool` is mandatory and cannot be removed. It allows several configuration options, which can be too limited for users requiring special node setups.
 
-With the Kyma worker pool feature, you can add customized worker pools to your Kyma runtime and introduce worker nodes optimized for your particular workload requirements. 
+With the worker pool feature, you can add customized worker pools to your Kyma runtime and introduce worker nodes optimized for your particular workload requirements. 
 
-The KIM-Snatch module assigns Kyma workloads, for example, Kyma modules' operators, to the Kyma worker pool and ensures that your worker pools are reserved for your workloads. This solution has the following advantages:
+The KIM-Snatch module assigns Kyma workloads, for example, Kyma modules' operators, to the `Kyma worker pool` and ensures that your worker pools are reserved for your workloads. This solution has the following advantages:
 
 * Kyma workloads are not allocating resources on customized worker pools. This ensures that customers have the full capacity of the worker pool available for their workloads.
 * It reduces the risk of incompatibility between Kyma container images and individually configured worker pools.
