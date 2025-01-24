@@ -18,7 +18,7 @@ The KIM-Snatch introduces the Kubernetes [mutating admission webhook](https://ku
 
 It intercepts all Pods that are scheduled in a Kyma-managed namespace. [Kyma Lifecycle Manager (KLM)](https://github.com/kyma-project/lifecycle-manager) always labels a managed namespace with `operator.kyma-project.io/managed-by: kyma`. KIM reacts only to Pods scheduled in one of these labeled namespaces. Typical Kyma-managed namespaces are `kyma-system` or, if the Kyma Istio module is used,  `istio`.
 
-![KIM Snatch Webhook](./assets/snatch-deployment.png)
+![KIM Snatch Webhook](./assets/snatch-deployment.svg)
 
 Before the Pod is handed over to the Kubernetes scheduler, KIM-Snatch adds [`nodeAffinity`](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity) to the Pod's manifest. This informs the Kubernetes scheduler to prefer nodes within the Kyma worker pool for this Pod. 
 
