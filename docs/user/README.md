@@ -1,22 +1,22 @@
 # KIM Snatch
 
 ## Overview
-The KIM Snatch is part of Kyma Infrastructure Manager's (KIM) worker pool feature. It is deployed on all Kyma-managed runtimes. Mandatory modules are not visible for  SAP BTP, Kyma runtime customers and automatically installed by the [KLM](https://github.com/kyma-project/lifecycle-manager) on each SAP BTP, Kyma runtime.
+The KIM Snatch is part of Kyma Infrastructure Manager's (KIM) worker pool feature. It is deployed on all Kyma-managed runtimes.
 
-In the past, only one worker pool existed in a Kyma runtime (called `Kyma worker pool`). This `Kyma worker pool` is mandatory and cannot be removed. It allows several configuration options, which can be too limited for users requiring special node setups.
+So far, `Kyma worker pool` has been the only existing worker pool in SAP BTP, Kyma runtime. This `Kyma worker pool` is mandatory and cannot be removed. It allows several configuration options, which can be too limited for users requiring special node setups.
 
-With the worker pool feature, you can add customized worker pools to your Kyma runtime and introduce worker nodes optimized for your particular workload requirements. 
+Now, with the worker pool feature, you can add customized worker pools to your Kyma runtime and introduce worker nodes optimized for your particular workload requirements. 
 
-The KIM-Snatch assigns Kyma workloads, for example, Kyma modules' operators, to the `Kyma worker pool` and ensures that your worker pools are reserved for your workloads. This solution has the following advantages:
+KIM Snatch assigns Kyma workloads, for example, Kyma modules' operators, to `Kyma worker pool` and ensures that your worker pools are reserved for your workloads. This solution has the following advantages:
 
-* Kyma workloads are not allocating resources on customized worker pools. This ensures that customers have the full capacity of the worker pool available for their workloads.
+* Kyma workloads don't allocate resources on customized worker pools. This ensures that customers have the full capacity of the worker pool available for their workloads.
 * It reduces the risk of incompatibility between Kyma container images and individually configured worker pools.
 
 ## Technical Approach
 
 The KIM-Snatch introduces the Kubernetes [mutating admission webhook](https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/#mutatingadmissionwebhook).
 
-It intercepts all Pods that are scheduled in a Kyma-managed namespace. [Kyma Lifecycle Manager (KLM)](https://github.com/kyma-project/lifecycle-manager) always labels a managed namespace with `operator.kyma-project.io/managed-by: kyma`. KIM reacts only to Pods scheduled in one of these labeled namespaces. Typical Kyma-managed namespaces are `kyma-system` or, if the Kyma Istio module is used,  `istio`.
+It intercepts all Pods that are scheduled in a Kyma-managed namespace. [Kyma Lifecycle Manager (KLM)](https://github.com/kyma-project/lifecycle-manager) always labels a managed namespace with `operator.kyma-project.io/managed-by: kyma`. KIM reacts only to Pods scheduled in one of these labeled namespaces. Typical Kyma-managed namespaces are `kyma-system` or, if the Kyma Istio module is used, `istio`.
 
 ![KIM Snatch Webhook](./assets/snatch-deployment.svg)
 
@@ -30,9 +30,9 @@ Assigning a Pod to a specific worker pool can have the following drawbacks:
 * Resources of the preferred worker pool are exhausted, while other worker pools still have free capacities.
 * If no suitable worker pool can be found and the node affinity is set as a "hard" rule, the Pod is not scheduled.
 
-To overcome these limitations, we use `preferredDuringSchedulingIgnoredDuringExecution` so that the configured node affinity on Kyma workloads is a "soft" rule. For more details, see the [Kubernetes documentation](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity)). The Kubernetes scheduler prefers the Kyma worker pool. Still, if scheduling the Pod in this pool is impossible, it also considers other worker pools.
+To overcome these limitations, we use `preferredDuringSchedulingIgnoredDuringExecution` so that the configured node affinity on Kyma workloads is a "soft" rule. For more details, see the [Kubernetes documentation](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity). The Kubernetes scheduler prefers the Kyma worker pool. Still, if scheduling the Pod in this pool is impossible, it also considers other worker pools.
 
-### Kyma workloads are not Intercepted
+### Kyma Workloads are not Intercepted
 
 #### Non-Available Webhook is Ignored by Kubernetes
 Kubernetes calls can be heavily impacted if a mandatory admission webhook isn't responsive enough. This can lead to timeouts and massive performance degradation.
