@@ -6,16 +6,16 @@
 
 |Component|Purpose
 |--|--|
-|[Gardener Cert Manager](https://github.com/gardener/cert-management)|Kubernetes Operator responsible for issuing and rotating TLS certificates|
-|[Issuer CR](https://github.com/gardener/cert-management?tab=readme-ov-file#setting-up-issuers)|Custom resource used by Gardener Cert Manager for managing certificates and CA|
-|[Certificate CR](https://github.com/gardener/cert-management?tab=readme-ov-file#requesting-a-certificate)|Custom resource used by Gardener Cert Manager for issuing a certificates|
-|Kubernetes Secret|Created by Gardener Cert-Manager to store the generated CA, TLS key and certificate|
-|WebhookConfiguration|Customer Resource of Kubernetes considered by API server to invoke webhooks during request processing|
-|API Server|API server of Kubernetes which processes HTTP request and applies resources changes in ETCD|
-|Webhook|Webserver intercepting requests before the API server is processing them|
+|[Gardener Cert Manager](https://github.com/gardener/cert-management)|Kubernetes Operator responsible for issuing and rotating TLS certificates.|
+|[Issuer CR](https://github.com/gardener/cert-management?tab=readme-ov-file#setting-up-issuers)|Custom resource used by Gardener Cert Manager for managing certificates and CA.|
+|[Certificate CR](https://github.com/gardener/cert-management?tab=readme-ov-file#requesting-a-certificate)|Custom resource used by Gardener Cert Manager for issuing a certificates.|
+|Kubernetes Secret|Created by Gardener Cert-Manager to store the generated CA, TLS key and certificate.|
+|WebhookConfiguration|Customer Resource of Kubernetes considered by API server to invoke webhooks during request processing.|
+|API Server|API server of Kubernetes which processes HTTP request and applies resources changes in ETCD.|
+|Webhook|Webserver intercepting requests before the API server is processing them.|
 |Webhook HTTPS-Server|Invoked by the API Server and intercepts all incoming requests of the API server.|
-|Webhook certs volume|Mount point which makes the data entries of the Secret accessible over the webhook's filesystem|
-|Webhook Cert Watcher|Monitoring changes applied on mounted secret. 
+|Webhook certs volume|Mount point which makes the data entries of the Secret accessible over the webhook's filesystem.|
+|Webhook Cert Watcher|Monitoring changes applied on mounted secret.|
 
 ## How it works
 
@@ -23,7 +23,7 @@
 * A webhook is started (as pod).
    - It mounts the secret to make the CA, TLS key and certificate accessible via the local filesystem.
    - An HTTPS endpoint is exposed, using the mounted TLS certificate for securing incoming connections.
-   - A Cert Watcher triggers an update of the `WebhookConfiguration` and a reload of the HTTPS server whenever an entry in the mounted secret was modified. This keeps the used secrets up-to-date even after they were rotated.|
+   - A Cert Watcher triggers an update of the `WebhookConfiguration` and a reload of the HTTPS server whenever an entry in the mounted secret was modified. This keeps the used secrets up-to-date even after they were rotated.
 * The `WebhookConfiguration` informs the Kubernetes API server about the existence of the webhook and refers to the CA. The CA will be used by the API server to verify  HTTPS connections established to the webhook.
 * API Server calls this HTTPS endpoint of the webhook for each received HTTP request. The webhook is allowed to modify the  request before it's finally processed by the API server.
 
