@@ -31,7 +31,6 @@ import (
 
 	"github.com/kyma-project/kim-snatch/internal/httpserver"
 	logf "github.com/kyma-project/kim-snatch/internal/log"
-	"github.com/kyma-project/kim-snatch/internal/metrics"
 	"sigs.k8s.io/controller-runtime/pkg/certwatcher"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
@@ -78,6 +77,8 @@ type Options struct {
 	WebhookMux *http.ServeMux
 
 	Callback func(tls.Certificate)
+
+	//Metrics metrics.Metrics
 }
 
 // NewServer constructs a new webhook.Server from the provided options.
@@ -105,6 +106,8 @@ type DefaultServer struct {
 	mu sync.Mutex
 
 	webhookMux *http.ServeMux
+
+	//metrics metrics.Metrics
 }
 
 // setDefaults does defaulting for the Server.
@@ -155,7 +158,7 @@ func (s *DefaultServer) Register(path string, hook http.Handler) {
 		return
 	}
 	s.webhooks[path] = hook
-	s.webhookMux.Handle(path, metrics.InstrumentedHook(path, hook))
+	s.webhookMux.Handle(path, hook)
 
 	regLog := log.WithValues("path", path)
 	regLog.Info("Registering webhook")
