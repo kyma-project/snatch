@@ -29,13 +29,13 @@ func NewMetrics() Metrics {
 		shootsDefault: prometheus.NewCounter(
 			prometheus.CounterOpts{
 				Subsystem: "kim_snatch",
-				Name:      "_shoots_default",
+				Name:      "shoots_default",
 				Help:      "Indicates the number of Shoots with NodeAffinity",
 			}),
 		shootsFallback: prometheus.NewCounter(
 			prometheus.CounterOpts{
 				Subsystem: "kim_snatch",
-				Name:      "_shoots_fallback",
+				Name:      "shoots_fallback",
 				Help:      "Indicates the number of Shoots with missing NodeAffinity",
 			}),
 	}
