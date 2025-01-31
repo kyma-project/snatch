@@ -20,7 +20,7 @@ import (
 	"crypto/tls"
 	"flag"
 	"fmt"
-	"github.com/kyma-project/kim-snatch/internal/metricsa"
+	"github.com/kyma-project/kim-snatch/internal/metrics"
 	"os"
 	"path"
 
@@ -195,7 +195,7 @@ func main() {
 		logger.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
-	mtr := metricsa.NewMetrics()
+	mtr := metrics.NewMetrics()
 
 	var nodeList corev1.NodeList
 	if err := rtClient.List(context.TODO(), &nodeList, client.MatchingLabels{

@@ -1,4 +1,4 @@
-package metricsa
+package metrics
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
@@ -17,32 +17,25 @@ type metricsImpl struct {
 }
 
 func (m metricsImpl) SetDefaultShoot() {
-	//m.shootsDefault.DeletePartialMatch(prometheus.Labels{shootNameIDKeyName: shootName})
 	m.shootsDefault.Inc()
 }
 
 func (m metricsImpl) SetFallbackShoot() {
-	//m.shootsFallback.DeletePartialMatch(prometheus.Labels{shootNameIDKeyName: shootName})
 	m.shootsFallback.Inc()
 }
-
-//func (m metricsImpl) CleanUpCounters(runtimeID, runtimeName string) {
-//	m.shootsDefault.
-//	//m.runtimeStateGauge.Delete(prometheus.Labels{runtimeIDKeyName: runtimeID, runtimeNameKeyName: runtimeName})
-//}
 
 func NewMetrics() Metrics {
 	m := &metricsImpl{
 		shootsDefault: prometheus.NewCounter(
 			prometheus.CounterOpts{
 				Subsystem: "kim_snatch",
-				Name:      "snatch_shoots_default",
+				Name:      "_shoots_default",
 				Help:      "Indicates the number of Shoots with NodeAffinity",
 			}),
 		shootsFallback: prometheus.NewCounter(
 			prometheus.CounterOpts{
 				Subsystem: "kim_snatch",
-				Name:      "snatch_shoots_fallback",
+				Name:      "_shoots_fallback",
 				Help:      "Indicates the number of Shoots with missing NodeAffinity",
 			}),
 	}

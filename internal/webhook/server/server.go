@@ -77,8 +77,6 @@ type Options struct {
 	WebhookMux *http.ServeMux
 
 	Callback func(tls.Certificate)
-
-	//Metrics metrics.Metrics
 }
 
 // NewServer constructs a new webhook.Server from the provided options.
@@ -106,8 +104,6 @@ type DefaultServer struct {
 	mu sync.Mutex
 
 	webhookMux *http.ServeMux
-
-	//metrics metrics.Metrics
 }
 
 // setDefaults does defaulting for the Server.
