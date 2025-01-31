@@ -212,8 +212,9 @@ func main() {
 		mtr.SetFallbackShoot()
 		logger.Error(errInvalidArgument, errMsg)
 		defaultPod = webhookcorev1.ApplyDefaultsFallback(kymaWorkerPoolName)
+	} else {
+		mtr.SetDefaultShoot()
 	}
-	mtr.SetDefaultShoot()
 
 	if err = webhookcorev1.SetupPodWebhookWithManager(mgr, defaultPod); err != nil {
 		logger.Error(err, "unable to create webhook", "webhook", "Pod")
