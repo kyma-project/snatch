@@ -146,7 +146,6 @@ func main() {
 		CertDir:  certDir,
 		KeyName:  webhookServerKeyName,
 		CertName: webhookServerCertName,
-		//Metrics:  metrics.NewMetrics(),
 		Callback: func(cert tls.Certificate) {
 			// read regenerated certificate
 			certPath := path.Join(certDir, certificateAuthorityName)
