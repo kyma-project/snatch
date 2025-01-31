@@ -31,7 +31,6 @@ import (
 
 	"github.com/kyma-project/kim-snatch/internal/httpserver"
 	logf "github.com/kyma-project/kim-snatch/internal/log"
-	"github.com/kyma-project/kim-snatch/internal/metrics"
 	"sigs.k8s.io/controller-runtime/pkg/certwatcher"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
@@ -155,7 +154,7 @@ func (s *DefaultServer) Register(path string, hook http.Handler) {
 		return
 	}
 	s.webhooks[path] = hook
-	s.webhookMux.Handle(path, metrics.InstrumentedHook(path, hook))
+	s.webhookMux.Handle(path, hook)
 
 	regLog := log.WithValues("path", path)
 	regLog.Info("Registering webhook")

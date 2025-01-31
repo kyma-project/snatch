@@ -20,6 +20,7 @@ import (
 	"crypto/tls"
 	"flag"
 	"fmt"
+	"github.com/kyma-project/kim-snatch/internal/metrics"
 	"os"
 	"path"
 
@@ -42,7 +43,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-	"sigs.k8s.io/controller-runtime/pkg/metrics/filters"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	// +kubebuilder:scaffold:imports
 )
@@ -81,7 +81,7 @@ func main() {
 	var mWhCfgName string
 	var kymaWorkerPoolName string
 
-	flag.StringVar(&metricsAddr, "metrics-bind-address", "0", "The address the metrics endpoint binds to. "+
+	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metrics endpoint binds to. "+
 		"Use :8443 for HTTPS or :8080 for HTTP, or leave as 0 to disable the metrics service.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&secureMetrics, "metrics-secure", true,
@@ -177,21 +177,7 @@ func main() {
 	// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.19.1/pkg/metrics/server
 	// - https://book.kubebuilder.io/reference/metrics.html
 	metricsServerOptions := metricsserver.Options{
-		BindAddress:   metricsAddr,
-		SecureServing: secureMetrics,
-		TLSOpts:       tlsOpts,
-	}
-
-	if secureMetrics {
-		// FilterProvider is used to protect the metrics endpoint with authn/authz.
-		// These configurations ensure that only authorized users and service accounts
-		// can access the metrics endpoint. The RBAC are configured in 'config/rbac/kustomization.yaml'. More info:
-		// https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.19.1/pkg/metrics/filters#WithAuthenticationAndAuthorization
-		metricsServerOptions.FilterProvider = filters.WithAuthenticationAndAuthorization
-
-		// TODO(user): If CertDir, CertName, and KeyName are not specified, controller-runtime will automatically
-		// generate self-signed certificates for the metrics server. While convenient for development and testing,
-		// this setup is not recommended for production.
+		BindAddress: metricsAddr,
 	}
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
@@ -207,6 +193,7 @@ func main() {
 		logger.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
+	mtr := metrics.NewMetrics()
 
 	var nodeList corev1.NodeList
 	if err := rtClient.List(context.TODO(), &nodeList, client.MatchingLabels{
@@ -220,9 +207,11 @@ func main() {
 	if len(nodeList.Items) == 0 {
 		errMsg := fmt.Sprintf("worker.gardener.cloud/pool=%s not exist, switching to fallback",
 			kymaWorkerPoolName)
-
+		mtr.SetFallbackShoot()
 		logger.Error(errInvalidArgument, errMsg)
 		defaultPod = webhookcorev1.ApplyDefaultsFallback(kymaWorkerPoolName)
+	} else {
+		mtr.SetDefaultShoot()
 	}
 
 	if err = webhookcorev1.SetupPodWebhookWithManager(mgr, defaultPod); err != nil {
