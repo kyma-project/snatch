@@ -43,10 +43,10 @@ The webhook is implemented as a [mutating webhook](https://kubernetes.io/docs/re
 ## Non-Intrusive Behavior
 To avoid any risk of interrupting workloads, the webhook is implemented defensively:
 
-1. During the bootstrap, it verifies if at least one worker node is assigned to the worker pool owned by Kyma. If no matching worker node exists (which means the cluster has no Kyma-owned worker pool), the webhook logs an error and does not intercept any request.
-2. The namespace of a Pod must be labeled with `operator.kyma-project.io/managed-by: kyma`. Only if this is the case does the Pod get a `nodeAffinity` assigned.
-3. The assigned `nodeAffinity` is of type `preferredDuringSchedulingIgnoredDuringExecution`. The scheduler follows this affinity with the best effort but does not enforce it. This minimizes the risk that Pods aren't scheduled if a suitable node cannot be found. The node affinity is added with the  [**weight**](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#preferredschedulingterm-v1-core) of `10`, which allows the definition of further `nodeAffinity` rules with higher relevance. This value indicates the priority of this `nodeAffinity`, and ranges from 0=low to 100=high. 
-4. Already scheduled Pods are not considered by the webhook. It only interferes with Pods not yet passed to the Kubernetes scheduler. Running Pods aren't touched (no `nodeAffinity` is added to their manifest) and are not restarted.
+* During the bootstrap, it verifies if at least one worker node is assigned to the worker pool owned by Kyma. If no matching worker node exists (which means the cluster has no Kyma-owned worker pool), the webhook logs an error and does not intercept any request.
+* The namespace of a Pod must be labeled with `operator.kyma-project.io/managed-by: kyma`. Only if this is the case does the Pod get a `nodeAffinity` assigned.
+* The assigned `nodeAffinity` is of type `preferredDuringSchedulingIgnoredDuringExecution`. The scheduler follows this affinity with the best effort but does not enforce it. This minimizes the risk that Pods aren't scheduled if a suitable node cannot be found. The node affinity is added with the  [**weight**](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#preferredschedulingterm-v1-core) of `10`, which allows the definition of further `nodeAffinity` rules with higher relevance. This value indicates the priority of this `nodeAffinity`, and ranges from 0=low to 100=high. 
+* Already scheduled Pods are not considered by the webhook. It only interferes with Pods not yet passed to the Kubernetes scheduler. Running Pods aren't touched (no `nodeAffinity` is added to their manifest) and are not restarted.
 
 See an example of a Pod manifest with `nodeAffinity`, which was intercepted and updated by the mutating webhook:
 
