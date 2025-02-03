@@ -1,6 +1,19 @@
 # KIM Snatch Architecture
 
+Snatch is part or the Kyma Infrastructure Manager (KIM) and responsible to assign Kyma workloads to the Kyma owned worker pool. This document describes it's architecture and relevant technical flows.
+
 ![Snatch Architecture](./assets/architecture-webook.svg)
+
+
+1) Gardener cert-manager issues a CA, TLS key and certificate. It stores them as entries in a Kubernetes Secret.
+2) The KIM Snatch webhook mounts the Secret to make the CA, TLS key and certificate accessible through the local filesystem.
+3) An webserver server ist started which exposes a HTTPS endpoint, using the mounted TLS certificate for securing incoming connections.
+4) Changes of certificates are detected by a certificate watching library (Cert-Watcher).
+5) Cert Watcher triggers a reload the HTTPS server configuration. This keeps the used TLS certificates up-to-date even after they were rotated.
+6) Also the CA, used for creating the TLS certificates, is updated in the `WebhookConfiguration` by the Cert Watcher .
+7) The `WebhookConfiguration` informs the Kubernetes API server about the existence of the webhook and refers to the CA. The API server uses CA to verify HTTPS connections established to the webhook.
+8) API Server calls this HTTPS endpoint of the webhook for each received HTTP request. The webhook is allowed to modify the request before it's finally processed by the API server.
+
 
 ## Components
 
@@ -19,15 +32,9 @@
 
 ## How It Works
 
-![Flow](./assets/flow-snatch.svg)
+The activity diagram describes the internal technical process of Snatch more fine-grained:
 
-* Gardener cert-manager issues a CA, TLS key and certificate. It stores them as entries in a Kubernetes Secret.
-* A webhook is started (as a Pod).
-   - It mounts the Secret to make the CA, TLS key and certificate accessible through the local filesystem.
-   - An HTTPS endpoint is exposed, using the mounted TLS certificate for securing incoming connections.
-   - Whenever an entry in the mounted Secret is modified, Cert Watcher triggers an update of the `WebhookConfiguration` and a reload of the HTTPS server. This keeps the used Secrets up-to-date even after they were rotated.
-* The `WebhookConfiguration` informs the Kubernetes API server about the existence of the webhook and refers to the CA. The API server uses CA to verify HTTPS connections established to the webhook.
-* API Server calls this HTTPS endpoint of the webhook for each received HTTP request. The webhook is allowed to modify the  request before it's finally processed by the API server.
+![Flow](./assets/flow-snatch.svg)
 
 # Mutating Webhook
 
