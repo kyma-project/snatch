@@ -3,9 +3,6 @@ namePrefix: kim-snatch-
 
 patches:
 - path: manager_webhook_patch.yaml
-- path: manager_metrics_patch.yaml
-  target:
-    kind: Deployment
 - patch: |-
     - op: add
       path: /spec/template/spec/containers/0/args/-
