@@ -6,7 +6,7 @@
 
 |Component|Purpose
 |--|--|
-|[Gardener Cert Manager](https://github.com/gardener/cert-management)|Kubernetes Operator responsible for issuing and rotating TLS certificates.|
+|[Gardener cert-manager](https://github.com/gardener/cert-management)|Kubernetes Operator responsible for issuing and rotating TLS certificates.|
 |[Issuer CR](https://github.com/gardener/cert-management?tab=readme-ov-file#setting-up-issuers)|Custom resource used by Gardener Cert Manager for managing certificates and CA.|
 |[Certificate CR](https://github.com/gardener/cert-management?tab=readme-ov-file#requesting-a-certificate)|Custom resource used by Gardener Cert Manager for issuing a certificates.|
 |Kubernetes Secret|Created by Gardener Cert-Manager to store the generated CA, TLS key and certificate.|
